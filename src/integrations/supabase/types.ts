@@ -14,7 +14,144 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      artwork_analysis: {
+        Row: {
+          ai_description: string | null
+          artwork_id: string
+          color_palette: Json | null
+          composition: string | null
+          created_at: string
+          id: string
+          moods: string[] | null
+          styles: string[] | null
+          technical_details: string | null
+        }
+        Insert: {
+          ai_description?: string | null
+          artwork_id: string
+          color_palette?: Json | null
+          composition?: string | null
+          created_at?: string
+          id?: string
+          moods?: string[] | null
+          styles?: string[] | null
+          technical_details?: string | null
+        }
+        Update: {
+          ai_description?: string | null
+          artwork_id?: string
+          color_palette?: Json | null
+          composition?: string | null
+          created_at?: string
+          id?: string
+          moods?: string[] | null
+          styles?: string[] | null
+          technical_details?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "artwork_analysis_artwork_id_fkey"
+            columns: ["artwork_id"]
+            isOneToOne: true
+            referencedRelation: "artworks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      artwork_categories: {
+        Row: {
+          artwork_id: string
+          category: string
+          confidence: number
+          id: string
+        }
+        Insert: {
+          artwork_id: string
+          category: string
+          confidence?: number
+          id?: string
+        }
+        Update: {
+          artwork_id?: string
+          category?: string
+          confidence?: number
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "artwork_categories_artwork_id_fkey"
+            columns: ["artwork_id"]
+            isOneToOne: false
+            referencedRelation: "artworks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      artwork_tags: {
+        Row: {
+          artwork_id: string
+          id: string
+          tag: string
+        }
+        Insert: {
+          artwork_id: string
+          id?: string
+          tag: string
+        }
+        Update: {
+          artwork_id?: string
+          id?: string
+          tag?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "artwork_tags_artwork_id_fkey"
+            columns: ["artwork_id"]
+            isOneToOne: false
+            referencedRelation: "artworks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      artworks: {
+        Row: {
+          analysis_status: string
+          created_at: string
+          file_size_bytes: number | null
+          height: number | null
+          id: string
+          image_url: string
+          title: string
+          updated_at: string
+          user_id: string
+          width: number | null
+        }
+        Insert: {
+          analysis_status?: string
+          created_at?: string
+          file_size_bytes?: number | null
+          height?: number | null
+          id?: string
+          image_url: string
+          title: string
+          updated_at?: string
+          user_id: string
+          width?: number | null
+        }
+        Update: {
+          analysis_status?: string
+          created_at?: string
+          file_size_bytes?: number | null
+          height?: number | null
+          id?: string
+          image_url?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+          width?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
