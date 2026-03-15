@@ -1,1 +1,4 @@
 project_id = "xgekguwametrtbsirjig"
+
+[functions.analyze-artwork]
+verify_jwt = false
