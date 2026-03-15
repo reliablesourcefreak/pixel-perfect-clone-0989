@@ -4,7 +4,6 @@ import { StatCard } from "@/components/orbit/StatCard";
 import { CollectionCard } from "@/components/orbit/CollectionCard";
 import { ArtworkCard } from "@/components/orbit/ArtworkCard";
 import { Image, FolderOpen, BookOpen, BookText } from "lucide-react";
-import { motion } from "framer-motion";
 
 export default function Dashboard() {
   const stats = useMemo(() => store.getStats(), []);
@@ -12,66 +11,62 @@ export default function Dashboard() {
   const artworks = useMemo(() => store.getArtworks(), []);
   const pinnedCollections = useMemo(() => collections.filter((c) => c.pinned), [collections]);
   const recentArtworks = useMemo(
-    () => [...artworks].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 4),
+    () => [...artworks].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 6),
     [artworks]
   );
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-8">
+    <div className="px-8 py-10 max-w-6xl mx-auto">
+      {/* Title */}
+      <div className="mb-12">
+        <span className="catalog-num">Overview — Full Archive</span>
+        <h1 className="font-serif text-3xl mt-2 text-foreground">
+          Workspace Index
+        </h1>
+        <p className="font-mono text-xs text-muted-foreground mt-2 tracking-wide max-w-lg">
+          A comprehensive catalogue of all creative works, collections, knowledge entries, and narrative threads maintained within this archive.
+        </p>
+      </div>
+
       {/* Stats */}
-      <section>
-        <motion.h3
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="text-xs font-body font-semibold uppercase tracking-wider text-muted-foreground mb-4"
-        >
-          Workspace Stats
-        </motion.h3>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard label="Artworks" value={stats.totalArtworks} icon={Image} color="coral" delay={0} />
-          <StatCard label="Collections" value={stats.totalCollections} icon={FolderOpen} color="indigo" delay={0.05} />
-          <StatCard label="Codex Entries" value={stats.totalCodexEntries} icon={BookOpen} color="sage" delay={0.1} />
-          <StatCard label="Stories" value={stats.totalStories} icon={BookText} color="muted" delay={0.15} />
+      <section className="mb-16">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-border">
+          <StatCard label="Total Works" value={stats.totalArtworks} icon={Image} catalogId="STAT-001" />
+          <StatCard label="Collections" value={stats.totalCollections} icon={FolderOpen} catalogId="STAT-002" />
+          <StatCard label="Codex Entries" value={stats.totalCodexEntries} icon={BookOpen} catalogId="STAT-003" />
+          <StatCard label="Narratives" value={stats.totalStories} icon={BookText} catalogId="STAT-004" />
         </div>
       </section>
 
       {/* Pinned Collections */}
       {pinnedCollections.length > 0 && (
-        <section>
-          <motion.h3
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            className="text-xs font-body font-semibold uppercase tracking-wider text-muted-foreground mb-4"
-          >
-            Pinned Collections
-          </motion.h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <section className="mb-16">
+          <div className="mb-6">
+            <span className="section-label">Pinned Collections</span>
+            <div className="border-t border-border mt-2" />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-border">
             {pinnedCollections.map((col, i) => (
               <CollectionCard
                 key={col.id}
                 collection={col}
                 artworkCount={store.getArtworksByCollection(col.id).length}
-                delay={0.2 + i * 0.05}
+                index={collections.indexOf(col)}
               />
             ))}
           </div>
         </section>
       )}
 
-      {/* Recent Uploads */}
-      <section>
-        <motion.h3
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          className="text-xs font-body font-semibold uppercase tracking-wider text-muted-foreground mb-4"
-        >
-          Recent Uploads
-        </motion.h3>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+      {/* Recent Works */}
+      <section className="mb-16">
+        <div className="mb-6">
+          <span className="section-label">Recent Acquisitions</span>
+          <div className="border-t border-border mt-2" />
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-px bg-border">
           {recentArtworks.map((art, i) => (
-            <ArtworkCard key={art.id} artwork={art} delay={0.3 + i * 0.05} />
+            <ArtworkCard key={art.id} artwork={art} index={artworks.indexOf(art)} />
           ))}
         </div>
       </section>

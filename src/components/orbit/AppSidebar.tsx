@@ -7,7 +7,6 @@ import {
   Network,
   Download,
   Settings,
-  Sparkles,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -26,7 +25,7 @@ import {
 } from "@/components/ui/sidebar";
 
 const mainNav = [
-  { title: "Dashboard", url: "/", icon: LayoutDashboard },
+  { title: "Index", url: "/", icon: LayoutDashboard },
   { title: "Collections", url: "/collections", icon: FolderOpen },
   { title: "Codex", url: "/codex", icon: BookOpen },
   { title: "Stories", url: "/stories", icon: BookText },
@@ -50,24 +49,22 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar collapsible="icon">
-      <SidebarHeader className="px-4 py-5">
-        <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg gradient-hero">
-            <Sparkles className="h-4 w-4 text-accent-foreground" />
+    <Sidebar collapsible="icon" className="border-r border-border">
+      <SidebarHeader className="px-5 py-6 border-b border-border">
+        {!collapsed ? (
+          <div>
+            <h1 className="font-serif text-xl tracking-tight text-sidebar-primary">Orbit</h1>
+            <p className="catalog-num mt-0.5">Archive No. 001</p>
           </div>
-          {!collapsed && (
-            <span className="font-display text-lg font-bold tracking-tight text-sidebar-accent-foreground">
-              ORBIT
-            </span>
-          )}
-        </div>
+        ) : (
+          <span className="font-serif text-lg text-sidebar-primary text-center block">O</span>
+        )}
       </SidebarHeader>
 
-      <SidebarContent>
+      <SidebarContent className="px-2 pt-4">
         <SidebarGroup>
-          <SidebarGroupLabel className="text-sidebar-foreground/50 text-xs uppercase tracking-wider">
-            Workspace
+          <SidebarGroupLabel className="section-label px-3 pb-2">
+            Catalogue
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -77,10 +74,10 @@ export function AppSidebar() {
                     <NavLink
                       to={item.url}
                       end={item.url === "/"}
-                      className="transition-all duration-200"
-                      activeClassName="bg-sidebar-accent text-sidebar-primary font-medium"
+                      className="rounded-none font-mono text-xs tracking-wide transition-colors"
+                      activeClassName="bg-secondary text-foreground border-l-2 border-foreground"
                     >
-                      <item.icon className="mr-2 h-4 w-4" />
+                      <item.icon className="mr-2.5 h-3.5 w-3.5" strokeWidth={1.5} />
                       {!collapsed && <span>{item.title}</span>}
                     </NavLink>
                   </SidebarMenuButton>
@@ -90,8 +87,10 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
+        <div className="mx-3 my-4 border-t border-border" />
+
         <SidebarGroup>
-          <SidebarGroupLabel className="text-sidebar-foreground/50 text-xs uppercase tracking-wider">
+          <SidebarGroupLabel className="section-label px-3 pb-2">
             Views
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -101,10 +100,10 @@ export function AppSidebar() {
                   <SidebarMenuButton asChild isActive={isActive(item.url)}>
                     <NavLink
                       to={item.url}
-                      className="transition-all duration-200"
-                      activeClassName="bg-sidebar-accent text-sidebar-primary font-medium"
+                      className="rounded-none font-mono text-xs tracking-wide transition-colors"
+                      activeClassName="bg-secondary text-foreground border-l-2 border-foreground"
                     >
-                      <item.icon className="mr-2 h-4 w-4" />
+                      <item.icon className="mr-2.5 h-3.5 w-3.5" strokeWidth={1.5} />
                       {!collapsed && <span>{item.title}</span>}
                     </NavLink>
                   </SidebarMenuButton>
@@ -115,16 +114,16 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter>
+      <SidebarFooter className="border-t border-border">
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild isActive={isActive("/settings")}>
               <NavLink
                 to="/settings"
-                className="transition-all duration-200"
-                activeClassName="bg-sidebar-accent text-sidebar-primary font-medium"
+                className="rounded-none font-mono text-xs tracking-wide"
+                activeClassName="bg-secondary text-foreground"
               >
-                <Settings className="mr-2 h-4 w-4" />
+                <Settings className="mr-2.5 h-3.5 w-3.5" strokeWidth={1.5} />
                 {!collapsed && <span>Settings</span>}
               </NavLink>
             </SidebarMenuButton>

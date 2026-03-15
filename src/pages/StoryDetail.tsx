@@ -2,15 +2,13 @@ import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { store } from "@/lib/store";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Trash2 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { motion } from "framer-motion";
+import { Trash2 } from "lucide-react";
 
-const statusStyles: Record<string, string> = {
-  draft: "bg-muted text-muted-foreground",
-  in_progress: "bg-accent/10 text-accent",
-  completed: "bg-primary/10 text-primary",
-  published: "bg-secondary/10 text-secondary-foreground",
+const statusLabel: Record<string, string> = {
+  draft: "DRAFT",
+  in_progress: "IN PROGRESS",
+  completed: "COMPLETED",
+  published: "PUBLISHED",
 };
 
 export default function StoryDetail() {
@@ -21,7 +19,7 @@ export default function StoryDetail() {
   if (!story) {
     return (
       <div className="flex items-center justify-center h-64">
-        <p className="text-muted-foreground">Story not found</p>
+        <p className="font-mono text-xs text-muted-foreground">Narrative not found</p>
       </div>
     );
   }
@@ -31,81 +29,110 @@ export default function StoryDetail() {
     navigate("/stories");
   };
 
+  const storyIndex = store.getStories().findIndex((s) => s.id === id);
+
   return (
-    <div className="p-6 max-w-4xl mx-auto space-y-6">
-      <Button variant="ghost" size="sm" onClick={() => navigate("/stories")} className="text-muted-foreground hover:text-foreground">
-        <ArrowLeft className="h-4 w-4 mr-1" /> Stories
+    <div className="px-8 py-10 max-w-4xl mx-auto space-y-10">
+      <button
+        onClick={() => navigate("/stories")}
+        className="font-mono text-xs text-muted-foreground hover:text-foreground tracking-wide uppercase transition-colors"
+      >
+        ← Stories
+      </button>
+
+      <div>
+        <div className="flex items-center gap-3 mb-3">
+          <span className="catalog-num">NAR-{String(storyIndex + 1).padStart(3, "0")}</span>
+          <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-muted-foreground border border-border px-2 py-0.5">
+            {statusLabel[story.status]}
+          </span>
+        </div>
+        <h1 className="text-4xl font-serif text-foreground italic">{story.title}</h1>
+        <p className="font-mono text-xs text-muted-foreground mt-3 tracking-wide leading-relaxed max-w-xl">
+          {story.description}
+        </p>
+      </div>
+
+      {/* Metadata */}
+      <div className="border border-border">
+        <table className="w-full font-mono text-xs">
+          <tbody>
+            <tr className="border-b border-border">
+              <td className="p-3 text-muted-foreground tracking-widest uppercase w-40">Scenes</td>
+              <td className="p-3 text-foreground">{story.scenes.length}</td>
+            </tr>
+            <tr className="border-b border-border">
+              <td className="p-3 text-muted-foreground tracking-widest uppercase">Status</td>
+              <td className="p-3 text-foreground">{statusLabel[story.status]}</td>
+            </tr>
+            <tr>
+              <td className="p-3 text-muted-foreground tracking-widest uppercase">Last Updated</td>
+              <td className="p-3 text-foreground">{new Date(story.updatedAt).toISOString().split("T")[0]}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <Button variant="ghost" size="sm" onClick={handleDelete} className="text-destructive hover:text-destructive font-mono text-xs uppercase tracking-widest">
+        <Trash2 className="h-3 w-3 mr-1.5" strokeWidth={1.5} /> Remove Narrative
       </Button>
 
-      <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
-        <div className="flex items-start justify-between">
-          <h1 className="text-3xl font-display font-bold text-foreground">{story.title}</h1>
-          <Badge className={`capitalize ${statusStyles[story.status]}`}>{story.status.replace("_", " ")}</Badge>
+      {/* Scene outline */}
+      <div>
+        <div className="mb-6">
+          <span className="section-label">Scene Outline</span>
+          <div className="border-t border-border mt-2" />
         </div>
 
-        <p className="text-muted-foreground font-body max-w-2xl">{story.description}</p>
+        <div className="border-l border-border ml-3 space-y-0">
+          {story.scenes.map((scene, i) => {
+            const artwork = scene.artworkId ? store.getArtwork(scene.artworkId) : undefined;
+            const codex = scene.codexEntryId ? store.getCodexEntry(scene.codexEntryId) : undefined;
 
-        <div className="flex items-center gap-4 text-sm text-muted-foreground font-body">
-          <span>{story.scenes.length} scenes</span>
-          <span>•</span>
-          <span>Updated {new Date(story.updatedAt).toLocaleDateString()}</span>
-        </div>
+            return (
+              <div key={scene.id} className="relative pl-8 pb-8 last:pb-0">
+                {/* Dot */}
+                <div className="absolute left-0 top-0 -translate-x-[calc(50%+0.5px)] h-2 w-2 border border-foreground bg-background" />
 
-        <Button size="sm" variant="outline" onClick={handleDelete} className="text-destructive hover:text-destructive">
-          <Trash2 className="h-3.5 w-3.5 mr-1" /> Delete Story
-        </Button>
+                <div className="border border-border p-5">
+                  <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-muted-foreground">
+                    Scene {scene.sceneNumber}
+                  </span>
+                  <h4 className="font-serif text-base text-foreground mt-1">{scene.title}</h4>
+                  <p className="font-mono text-xs text-muted-foreground mt-2 leading-relaxed">
+                    {scene.description}
+                  </p>
 
-        {/* Scenes */}
-        <div className="space-y-4 mt-8">
-          <h3 className="text-xs font-body font-semibold uppercase tracking-wider text-muted-foreground">
-            Story Outline
-          </h3>
-          <div className="relative border-l-2 border-border ml-4 space-y-6">
-            {story.scenes.map((scene, i) => {
-              const artwork = scene.artworkId ? store.getArtwork(scene.artworkId) : undefined;
-              const codex = scene.codexEntryId ? store.getCodexEntry(scene.codexEntryId) : undefined;
-
-              return (
-                <motion.div
-                  key={scene.id}
-                  initial={{ opacity: 0, x: -8 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.08 }}
-                  className="relative pl-8"
-                >
-                  {/* Timeline dot */}
-                  <div className="absolute left-0 top-1 -translate-x-[calc(50%+1px)] h-3 w-3 rounded-full bg-primary border-2 border-background" />
-                  
-                  <div className="rounded-xl border bg-card p-4 shadow-card">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xs text-muted-foreground font-body">Scene {scene.sceneNumber}</span>
+                  {(artwork || codex) && (
+                    <div className="mt-4 border-t border-border pt-3 flex flex-wrap gap-4">
+                      {artwork && (
+                        <div className="flex items-center gap-3">
+                          <img src={artwork.imageUrl} alt={artwork.title} className="h-12 w-12 object-cover border border-border" />
+                          <div>
+                            <span className="font-mono text-[10px] text-muted-foreground tracking-widest uppercase">Artwork</span>
+                            <p className="font-mono text-xs text-foreground">{artwork.title}</p>
+                          </div>
+                        </div>
+                      )}
+                      {codex && (
+                        <div className="flex items-center gap-3">
+                          <div className="h-12 w-12 border border-border flex items-center justify-center">
+                            <span className="font-mono text-[10px] text-muted-foreground">CDX</span>
+                          </div>
+                          <div>
+                            <span className="font-mono text-[10px] text-muted-foreground tracking-widest uppercase">Codex</span>
+                            <p className="font-mono text-xs text-foreground">{codex.title}</p>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                    <h4 className="font-display text-base font-semibold text-card-foreground">{scene.title}</h4>
-                    <p className="mt-1 text-sm text-muted-foreground font-body">{scene.description}</p>
-
-                    {(artwork || codex) && (
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {artwork && (
-                          <div className="flex items-center gap-2 rounded-lg border p-2">
-                            <img src={artwork.imageUrl} alt={artwork.title} className="h-10 w-10 rounded object-cover" />
-                            <span className="text-xs font-body text-card-foreground">{artwork.title}</span>
-                          </div>
-                        )}
-                        {codex && (
-                          <div className="flex items-center gap-2 rounded-lg border p-2">
-                            <span className="text-xs">📖</span>
-                            <span className="text-xs font-body text-card-foreground">{codex.title}</span>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </motion.div>
-              );
-            })}
-          </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }

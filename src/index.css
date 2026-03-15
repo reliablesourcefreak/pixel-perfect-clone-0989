@@ -2,103 +2,103 @@
 @tailwind components;
 @tailwind utilities;
 
-@import '@fontsource/merriweather/400.css';
-@import '@fontsource/merriweather/700.css';
+@import '@fontsource/playfair-display/400.css';
+@import '@fontsource/playfair-display/400-italic.css';
+@import '@fontsource/playfair-display/700.css';
+@import '@fontsource/ibm-plex-mono/400.css';
+@import '@fontsource/ibm-plex-mono/500.css';
+@import '@fontsource/ibm-plex-mono/600.css';
 @import '@fontsource/inter/400.css';
 @import '@fontsource/inter/500.css';
-@import '@fontsource/inter/600.css';
-@import '@fontsource/inter/700.css';
+
+/*
+  MUSEUM ARCHIVE — Design System
+  Sharp. Clinical. Academic.
+  No shadows. No rounded corners. Extreme whitespace.
+*/
 
 @layer base {
   :root {
-    /* Orbit Creative OS — Indigo/Coral/Sage */
-    --background: 40 20% 97%;
-    --foreground: 0 0% 10%;
+    --background: 50 14% 97%;
+    --foreground: 0 0% 12%;
 
-    --card: 40 20% 99%;
-    --card-foreground: 0 0% 10%;
+    --card: 50 14% 97%;
+    --card-foreground: 0 0% 12%;
 
-    --popover: 40 20% 99%;
-    --popover-foreground: 0 0% 10%;
+    --popover: 50 20% 99%;
+    --popover-foreground: 0 0% 12%;
 
-    --primary: 260 60% 26%;
-    --primary-foreground: 40 20% 97%;
+    --primary: 0 0% 12%;
+    --primary-foreground: 50 14% 97%;
 
-    --secondary: 100 14% 55%;
-    --secondary-foreground: 0 0% 10%;
+    --secondary: 50 8% 92%;
+    --secondary-foreground: 0 0% 12%;
 
-    --accent: 14 100% 64%;
+    --accent: 0 72% 51%;
     --accent-foreground: 0 0% 100%;
 
-    --muted: 40 15% 93%;
-    --muted-foreground: 0 0% 40%;
+    --muted: 50 8% 92%;
+    --muted-foreground: 0 0% 45%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 40 15% 88%;
-    --input: 40 15% 88%;
-    --ring: 260 60% 26%;
+    --border: 0 0% 82%;
+    --input: 0 0% 82%;
+    --ring: 0 0% 12%;
 
-    --radius: 0.625rem;
+    --radius: 0px;
 
     /* Sidebar */
-    --sidebar-background: 260 55% 16%;
-    --sidebar-foreground: 260 20% 85%;
-    --sidebar-primary: 14 100% 64%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 260 40% 22%;
-    --sidebar-accent-foreground: 260 20% 92%;
-    --sidebar-border: 260 40% 22%;
-    --sidebar-ring: 14 100% 64%;
+    --sidebar-background: 50 14% 97%;
+    --sidebar-foreground: 0 0% 35%;
+    --sidebar-primary: 0 0% 12%;
+    --sidebar-primary-foreground: 50 14% 97%;
+    --sidebar-accent: 50 8% 92%;
+    --sidebar-accent-foreground: 0 0% 12%;
+    --sidebar-border: 0 0% 82%;
+    --sidebar-ring: 0 0% 12%;
 
-    /* Custom tokens */
-    --orbit-indigo: 260 60% 26%;
-    --orbit-coral: 14 100% 64%;
-    --orbit-sage: 100 14% 55%;
-    --orbit-warm-bg: 40 20% 97%;
-    --orbit-card-hover: 40 25% 95%;
-    --orbit-glow: 260 60% 40%;
+    /* Archive tokens */
+    --archive-red: 0 72% 51%;
+    --archive-warm: 50 14% 97%;
+    --archive-rule: 0 0% 82%;
+    --archive-dim: 0 0% 55%;
+    --archive-specimen: 50 20% 95%;
 
-    --font-display: 'Merriweather', Georgia, serif;
-    --font-body: 'Inter', system-ui, sans-serif;
-
-    --gradient-hero: linear-gradient(135deg, hsl(260 60% 26%), hsl(260 60% 40%));
-    --gradient-coral: linear-gradient(135deg, hsl(14 100% 64%), hsl(14 100% 55%));
-    --gradient-sage: linear-gradient(135deg, hsl(100 14% 55%), hsl(100 20% 45%));
-    --shadow-card: 0 1px 3px 0 hsl(0 0% 0% / 0.04), 0 1px 2px -1px hsl(0 0% 0% / 0.04);
-    --shadow-card-hover: 0 10px 30px -10px hsl(260 60% 26% / 0.15);
-    --shadow-elevated: 0 20px 60px -15px hsl(260 60% 26% / 0.2);
+    --font-serif: 'Playfair Display', 'Georgia', serif;
+    --font-mono: 'IBM Plex Mono', 'Menlo', monospace;
+    --font-sans: 'Inter', system-ui, sans-serif;
   }
 
   .dark {
-    --background: 260 30% 8%;
-    --foreground: 40 20% 92%;
-    --card: 260 25% 12%;
-    --card-foreground: 40 20% 92%;
-    --popover: 260 25% 12%;
-    --popover-foreground: 40 20% 92%;
-    --primary: 260 50% 65%;
-    --primary-foreground: 260 30% 8%;
-    --secondary: 100 14% 40%;
-    --secondary-foreground: 40 20% 92%;
-    --accent: 14 100% 64%;
+    --background: 0 0% 6%;
+    --foreground: 50 10% 85%;
+    --card: 0 0% 8%;
+    --card-foreground: 50 10% 85%;
+    --popover: 0 0% 8%;
+    --popover-foreground: 50 10% 85%;
+    --primary: 50 10% 85%;
+    --primary-foreground: 0 0% 6%;
+    --secondary: 0 0% 14%;
+    --secondary-foreground: 50 10% 85%;
+    --accent: 0 72% 51%;
     --accent-foreground: 0 0% 100%;
-    --muted: 260 20% 16%;
-    --muted-foreground: 40 10% 60%;
+    --muted: 0 0% 14%;
+    --muted-foreground: 0 0% 50%;
     --destructive: 0 62% 30%;
     --destructive-foreground: 0 0% 100%;
-    --border: 260 20% 18%;
-    --input: 260 20% 18%;
-    --ring: 260 50% 65%;
-    --sidebar-background: 260 40% 6%;
-    --sidebar-foreground: 260 20% 80%;
-    --sidebar-primary: 14 100% 64%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 260 30% 14%;
-    --sidebar-accent-foreground: 260 20% 90%;
-    --sidebar-border: 260 30% 14%;
-    --sidebar-ring: 14 100% 64%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 50 10% 85%;
+    --sidebar-background: 0 0% 6%;
+    --sidebar-foreground: 0 0% 50%;
+    --sidebar-primary: 50 10% 85%;
+    --sidebar-primary-foreground: 0 0% 6%;
+    --sidebar-accent: 0 0% 12%;
+    --sidebar-accent-foreground: 50 10% 85%;
+    --sidebar-border: 0 0% 18%;
+    --sidebar-ring: 50 10% 85%;
   }
 }
 
@@ -108,41 +108,71 @@
   }
 
   body {
-    @apply bg-background text-foreground;
-    font-family: var(--font-body);
+    @apply bg-background text-foreground antialiased;
+    font-family: var(--font-sans);
+    font-size: 14px;
+    letter-spacing: 0.01em;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-display);
+    font-family: var(--font-serif);
+    letter-spacing: -0.01em;
+  }
+
+  /* Archive horizontal rules */
+  hr {
+    @apply border-border;
   }
 }
 
 @layer utilities {
-  .font-display {
-    font-family: var(--font-display);
+  .font-serif {
+    font-family: var(--font-serif);
   }
 
-  .font-body {
-    font-family: var(--font-body);
+  .font-mono {
+    font-family: var(--font-mono);
   }
 
-  .gradient-hero {
-    background: var(--gradient-hero);
+  .font-sans {
+    font-family: var(--font-sans);
   }
 
-  .gradient-coral {
-    background: var(--gradient-coral);
+  /* Forensic overlay */
+  .forensic-overlay {
+    @apply absolute inset-0 bg-foreground/90 opacity-0 transition-opacity duration-300;
   }
 
-  .shadow-card {
-    box-shadow: var(--shadow-card);
+  .group:hover .forensic-overlay {
+    @apply opacity-100;
   }
 
-  .shadow-card-hover {
-    box-shadow: var(--shadow-card-hover);
+  .archive-border {
+    @apply border border-border;
   }
 
-  .shadow-elevated {
-    box-shadow: var(--shadow-elevated);
+  .archive-rule {
+    @apply border-t border-border;
+  }
+
+  .specimen-bg {
+    background-color: hsl(var(--archive-specimen));
+  }
+
+  /* Catalog number style */
+  .catalog-num {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: hsl(var(--archive-dim));
+  }
+
+  .section-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: hsl(var(--muted-foreground));
   }
 }

@@ -1,63 +1,66 @@
-import { motion } from "framer-motion";
 import { Artwork } from "@/lib/store";
-import { Badge } from "@/components/ui/badge";
 
 interface ArtworkCardProps {
   artwork: Artwork;
+  index: number;
   delay?: number;
   onClick?: () => void;
 }
 
-const statusColors: Record<string, string> = {
-  reference: "bg-muted text-muted-foreground",
-  draft: "bg-secondary/20 text-secondary-foreground",
-  final: "bg-primary/10 text-primary",
-  published: "bg-accent/10 text-accent",
-};
-
-export function ArtworkCard({ artwork, delay = 0, onClick }: ArtworkCardProps) {
+export function ArtworkCard({ artwork, index, onClick }: ArtworkCardProps) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay, duration: 0.35, ease: "easeOut" }}
+    <div
       onClick={onClick}
-      className="group cursor-pointer overflow-hidden rounded-xl border bg-card shadow-card hover:shadow-card-hover transition-all duration-300"
+      className="group cursor-pointer border border-border bg-background"
     >
-      <div className="relative aspect-square overflow-hidden">
+      {/* Image */}
+      <div className="relative aspect-[4/5] overflow-hidden">
         <img
           src={artwork.imageUrl}
           alt={artwork.title}
-          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+          className="h-full w-full object-cover transition-all duration-700"
           loading="lazy"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-foreground/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-        <div className="absolute bottom-3 left-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          <div className="flex flex-wrap gap-1">
-            {artwork.tags.slice(0, 3).map((tag) => (
-              <span
-                key={tag}
-                className="rounded-full bg-background/80 backdrop-blur-sm px-2 py-0.5 text-xs text-foreground font-body"
-              >
-                {tag}
-              </span>
-            ))}
+        {/* Forensic metadata overlay */}
+        <div className="forensic-overlay p-4 flex flex-col justify-between font-mono text-primary-foreground">
+          <div>
+            <span className="text-[10px] tracking-widest uppercase opacity-50">
+              Catalogue Entry
+            </span>
+            <p className="text-xs mt-2 leading-relaxed opacity-80">{artwork.description}</p>
+          </div>
+          <div className="space-y-1.5">
+            <div className="flex justify-between text-[10px] opacity-60">
+              <span>STATUS</span>
+              <span className="uppercase">{artwork.status}</span>
+            </div>
+            <div className="flex justify-between text-[10px] opacity-60">
+              <span>DATE</span>
+              <span>{new Date(artwork.createdAt).toISOString().split("T")[0]}</span>
+            </div>
+            <div className="flex justify-between text-[10px] opacity-60">
+              <span>TAGS</span>
+              <span>{artwork.tags.join(", ")}</span>
+            </div>
+            <div className="flex justify-between text-[10px] opacity-60">
+              <span>COLLECTIONS</span>
+              <span>{artwork.collectionIds.length}</span>
+            </div>
           </div>
         </div>
       </div>
-      <div className="p-3">
-        <div className="flex items-start justify-between gap-2">
-          <h4 className="font-display text-sm font-semibold text-card-foreground truncate">
-            {artwork.title}
-          </h4>
-          <Badge variant="secondary" className={`text-[10px] shrink-0 ${statusColors[artwork.status]}`}>
+
+      {/* Label strip */}
+      <div className="p-4 border-t border-border">
+        <span className="catalog-num">ART-{String(index + 1).padStart(4, "0")}</span>
+        <h4 className="font-serif text-sm mt-1 text-foreground leading-snug">{artwork.title}</h4>
+        <div className="mt-2 flex items-center gap-2">
+          <span className="inline-block h-1 w-1 bg-muted-foreground/40" />
+          <span className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest">
             {artwork.status}
-          </Badge>
+          </span>
         </div>
-        <p className="mt-1 text-xs text-muted-foreground line-clamp-1 font-body">
-          {artwork.description}
-        </p>
       </div>
-    </motion.div>
+    </div>
   );
 }

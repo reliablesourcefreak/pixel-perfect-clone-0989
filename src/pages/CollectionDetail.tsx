@@ -3,8 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { store } from "@/lib/store";
 import { ArtworkCard } from "@/components/orbit/ArtworkCard";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Pin, Trash2, Edit2 } from "lucide-react";
-import { motion } from "framer-motion";
+import { ArrowLeft, Pin, Trash2 } from "lucide-react";
 
 export default function CollectionDetail() {
   const { id } = useParams<{ id: string }>();
@@ -15,7 +14,7 @@ export default function CollectionDetail() {
   if (!collection) {
     return (
       <div className="flex items-center justify-center h-64">
-        <p className="text-muted-foreground">Collection not found</p>
+        <p className="font-mono text-xs text-muted-foreground">Record not found in archive</p>
       </div>
     );
   }
@@ -31,68 +30,87 @@ export default function CollectionDetail() {
   };
 
   const codexCount = store.getCodexEntries().filter((e) => e.collectionId === id).length;
+  const colIndex = store.getCollections().findIndex((c) => c.id === id);
 
   return (
-    <div className="max-w-7xl mx-auto">
-      {/* Hero */}
-      <div className="relative h-48 overflow-hidden">
+    <div className="max-w-6xl mx-auto">
+      {/* Header image */}
+      <div className="relative h-64 overflow-hidden border-b border-border">
         {collection.coverImageUrl ? (
           <img src={collection.coverImageUrl} alt={collection.name} className="h-full w-full object-cover" />
         ) : (
-          <div className="h-full w-full" style={{ backgroundColor: collection.color }} />
+          <div className="h-full w-full specimen-bg" />
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
-        <div className="absolute bottom-4 left-6 right-6">
-          <Button variant="ghost" size="sm" onClick={() => navigate("/collections")} className="mb-2 text-muted-foreground hover:text-foreground">
-            <ArrowLeft className="h-4 w-4 mr-1" /> Collections
-          </Button>
-          <motion.h1
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-3xl font-display font-bold text-foreground"
-          >
-            {collection.name}
-          </motion.h1>
-        </div>
+        <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent" />
       </div>
 
-      <div className="p-6 space-y-6">
-        {/* Meta row */}
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-4 text-sm text-muted-foreground font-body">
-            <span>{artworks.length} artworks</span>
-            <span>•</span>
-            <span>{codexCount} codex entries</span>
-            <span>•</span>
-            <span>Created {new Date(collection.createdAt).toLocaleDateString()}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={togglePin}>
-              <Pin className={`h-3.5 w-3.5 mr-1 ${collection.pinned ? "text-accent" : ""}`} />
-              {collection.pinned ? "Unpin" : "Pin"}
-            </Button>
-            <Button variant="outline" size="sm" onClick={handleDelete} className="text-destructive hover:text-destructive">
-              <Trash2 className="h-3.5 w-3.5 mr-1" /> Delete
-            </Button>
-          </div>
+      <div className="px-8 py-10 space-y-10">
+        <button
+          onClick={() => navigate("/collections")}
+          className="font-mono text-xs text-muted-foreground hover:text-foreground tracking-wide uppercase transition-colors"
+        >
+          ← Collections
+        </button>
+
+        <div>
+          <span className="catalog-num">COL-{String(colIndex + 1).padStart(3, "0")}</span>
+          <h1 className="font-serif text-4xl mt-2 text-foreground">{collection.name}</h1>
+          <p className="font-mono text-xs text-muted-foreground mt-3 tracking-wide max-w-xl leading-relaxed">
+            {collection.description}
+          </p>
         </div>
 
-        <p className="text-muted-foreground font-body max-w-2xl">{collection.description}</p>
+        {/* Metadata table */}
+        <div className="border border-border">
+          <table className="w-full font-mono text-xs">
+            <tbody>
+              <tr className="border-b border-border">
+                <td className="p-3 text-muted-foreground tracking-widest uppercase w-40">Works</td>
+                <td className="p-3 text-foreground">{artworks.length}</td>
+              </tr>
+              <tr className="border-b border-border">
+                <td className="p-3 text-muted-foreground tracking-widest uppercase">Codex Entries</td>
+                <td className="p-3 text-foreground">{codexCount}</td>
+              </tr>
+              <tr className="border-b border-border">
+                <td className="p-3 text-muted-foreground tracking-widest uppercase">Created</td>
+                <td className="p-3 text-foreground">{new Date(collection.createdAt).toISOString().split("T")[0]}</td>
+              </tr>
+              <tr>
+                <td className="p-3 text-muted-foreground tracking-widest uppercase">Status</td>
+                <td className="p-3 text-foreground">{collection.pinned ? "PINNED" : "STANDARD"}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div className="flex gap-3">
+          <Button variant="archive" size="sm" onClick={togglePin}>
+            <Pin className="h-3 w-3 mr-1.5" strokeWidth={1.5} />
+            {collection.pinned ? "Unpin" : "Pin"}
+          </Button>
+          <Button variant="ghost" size="sm" onClick={handleDelete} className="text-destructive hover:text-destructive font-mono text-xs uppercase tracking-widest">
+            <Trash2 className="h-3 w-3 mr-1.5" strokeWidth={1.5} /> Remove
+          </Button>
+        </div>
 
         {/* Gallery */}
         <div>
-          <h3 className="text-xs font-body font-semibold uppercase tracking-wider text-muted-foreground mb-4">
-            Gallery
-          </h3>
+          <div className="mb-6">
+            <span className="section-label">Gallery — {artworks.length} Works</span>
+            <div className="border-t border-border mt-2" />
+          </div>
           {artworks.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-px bg-border border border-border">
               {artworks.map((art, i) => (
-                <ArtworkCard key={art.id} artwork={art} delay={i * 0.04} />
+                <ArtworkCard key={art.id} artwork={art} index={i} />
               ))}
             </div>
           ) : (
-            <div className="rounded-xl border-2 border-dashed border-border p-12 text-center">
-              <p className="text-muted-foreground font-body">No artworks in this collection yet</p>
+            <div className="border border-border p-16 text-center">
+              <p className="font-mono text-xs text-muted-foreground tracking-wide">
+                No specimens catalogued in this collection
+              </p>
             </div>
           )}
         </div>
