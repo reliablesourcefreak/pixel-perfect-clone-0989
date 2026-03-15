@@ -1,9 +1,7 @@
 import { useState } from "react";
 import { store, CodexEntry } from "@/lib/store";
 import { Button } from "@/components/ui/button";
-import { Plus, User, Globe, Lightbulb, Wrench, BookOpen, MoreHorizontal } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { motion } from "framer-motion";
+import { Plus } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -23,22 +21,13 @@ import {
 } from "@/components/ui/select";
 import { useNavigate } from "react-router-dom";
 
-const typeIcons: Record<string, typeof User> = {
-  character: User,
-  world: Globe,
-  concept: Lightbulb,
-  technique: Wrench,
-  reference: BookOpen,
-  other: MoreHorizontal,
-};
-
-const typeColors: Record<string, string> = {
-  character: "bg-accent/10 text-accent",
-  world: "bg-primary/10 text-primary",
-  concept: "bg-secondary/10 text-secondary-foreground",
-  technique: "bg-muted text-muted-foreground",
-  reference: "bg-primary/5 text-primary",
-  other: "bg-muted text-muted-foreground",
+const typeLabels: Record<string, string> = {
+  character: "CHAR",
+  world: "WRLD",
+  concept: "CNPT",
+  technique: "TECH",
+  reference: "REF",
+  other: "MISC",
 };
 
 export default function Codex() {
@@ -64,36 +53,36 @@ export default function Codex() {
   }, {});
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-8">
-      <div className="flex items-center justify-between">
-        <motion.h3
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="text-xs font-body font-semibold uppercase tracking-wider text-muted-foreground"
-        >
-          Knowledge Base ({entries.length} entries)
-        </motion.h3>
+    <div className="px-8 py-10 max-w-6xl mx-auto">
+      <div className="flex items-end justify-between mb-8">
+        <div>
+          <span className="catalog-num">Catalogue Section — Knowledge Base</span>
+          <h1 className="font-serif text-3xl mt-2 text-foreground">Codex</h1>
+          <p className="font-mono text-xs text-muted-foreground mt-2 tracking-wide">
+            {entries.length} registered entries across {Object.keys(grouped).length} categories
+          </p>
+        </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button size="sm" className="gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90">
-              <Plus className="h-3.5 w-3.5" />
+            <Button variant="archive" size="sm">
+              <Plus className="h-3 w-3 mr-1.5" strokeWidth={1.5} />
               New Entry
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="rounded-none border-foreground">
             <DialogHeader>
-              <DialogTitle className="font-display">Create Codex Entry</DialogTitle>
+              <DialogTitle className="font-serif text-xl">Register Codex Entry</DialogTitle>
             </DialogHeader>
-            <div className="space-y-4 mt-2">
+            <div className="space-y-5 mt-4">
               <div>
-                <Label className="font-body text-sm">Title</Label>
-                <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Aria" />
+                <Label className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Title</Label>
+                <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Entry designation" className="mt-1.5 rounded-none" />
               </div>
               <div>
-                <Label className="font-body text-sm">Type</Label>
+                <Label className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Classification</Label>
                 <Select value={type} onValueChange={(v) => setType(v as CodexEntry["type"])}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
+                  <SelectTrigger className="rounded-none mt-1.5"><SelectValue /></SelectTrigger>
+                  <SelectContent className="rounded-none">
                     <SelectItem value="character">Character</SelectItem>
                     <SelectItem value="world">World</SelectItem>
                     <SelectItem value="concept">Concept</SelectItem>
@@ -104,58 +93,55 @@ export default function Codex() {
                 </Select>
               </div>
               <div>
-                <Label className="font-body text-sm">Content (Markdown)</Label>
-                <Textarea value={content} onChange={(e) => setContent(e.target.value)} placeholder="Write about this entry…" rows={6} />
+                <Label className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Content</Label>
+                <Textarea value={content} onChange={(e) => setContent(e.target.value)} placeholder="Documentation…" rows={6} className="mt-1.5 rounded-none font-mono text-xs" />
               </div>
-              <Button onClick={handleCreate} className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
-                Create
+              <Button onClick={handleCreate} variant="archive" className="w-full">
+                Register Entry
               </Button>
             </div>
           </DialogContent>
         </Dialog>
       </div>
 
-      {Object.entries(grouped).map(([typeName, typeEntries], gi) => {
-        const Icon = typeIcons[typeName] || MoreHorizontal;
-        return (
-          <motion.section
-            key={typeName}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: gi * 0.05 }}
-          >
-            <div className="flex items-center gap-2 mb-3">
-              <Icon className="h-4 w-4 text-muted-foreground" />
-              <h4 className="text-sm font-body font-semibold capitalize text-foreground">{typeName}s</h4>
-              <Badge variant="secondary" className="text-xs">{typeEntries.length}</Badge>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {typeEntries.map((entry, i) => (
-                <motion.div
-                  key={entry.id}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: gi * 0.05 + i * 0.03 }}
-                  onClick={() => navigate(`/codex/${entry.id}`)}
-                  className="cursor-pointer rounded-xl border bg-card p-4 shadow-card hover:shadow-card-hover transition-all duration-300"
-                >
-                  <div className="flex items-start justify-between">
-                    <h5 className="font-display text-sm font-semibold text-card-foreground">{entry.title}</h5>
-                    <Badge className={`text-[10px] ${typeColors[entry.type]}`}>{entry.type}</Badge>
+      <div className="border-t border-border mb-10" />
+
+      {Object.entries(grouped).map(([typeName, typeEntries], gi) => (
+        <section key={typeName} className="mb-12">
+          <div className="flex items-center gap-3 mb-4">
+            <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-muted-foreground border border-border px-2 py-0.5">
+              {typeLabels[typeName] || "MISC"}
+            </span>
+            <span className="section-label capitalize">{typeName}s — {typeEntries.length}</span>
+          </div>
+
+          <div className="border border-border divide-y divide-border">
+            {typeEntries.map((entry, i) => (
+              <div
+                key={entry.id}
+                onClick={() => navigate(`/codex/${entry.id}`)}
+                className="cursor-pointer p-5 hover:bg-secondary transition-colors group"
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-3">
+                      <span className="catalog-num">{typeLabels[entry.type]}-{String(i + 1).padStart(3, "0")}</span>
+                      <h4 className="font-serif text-base text-foreground">{entry.title}</h4>
+                    </div>
+                    <p className="mt-2 font-mono text-xs text-muted-foreground line-clamp-2 leading-relaxed max-w-xl">
+                      {entry.content.replace(/[#*\[\]]/g, "").slice(0, 180)}
+                    </p>
                   </div>
-                  <p className="mt-2 text-xs text-muted-foreground line-clamp-3 font-body">
-                    {entry.content.replace(/[#*\[\]]/g, "").slice(0, 150)}…
-                  </p>
-                  <div className="mt-3 flex items-center gap-3 text-xs text-muted-foreground">
-                    <span>{entry.linkedArtworkIds.length} artworks</span>
+                  <div className="flex items-center gap-4 font-mono text-[10px] text-muted-foreground tracking-wide shrink-0 ml-6">
+                    <span>{entry.linkedArtworkIds.length} works</span>
                     <span>{entry.linkedStoryIds.length} stories</span>
                   </div>
-                </motion.div>
-              ))}
-            </div>
-          </motion.section>
-        );
-      })}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      ))}
     </div>
   );
 }
