@@ -1,5 +1,6 @@
 import {
   LayoutDashboard,
+  Image,
   FolderOpen,
   BookOpen,
   BookText,
@@ -7,9 +8,13 @@ import {
   Network,
   Download,
   Settings,
+  Upload,
+  LogIn,
+  LogOut,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 import {
   Sidebar,
   SidebarContent,
@@ -25,7 +30,8 @@ import {
 } from "@/components/ui/sidebar";
 
 const mainNav = [
-  { title: "Index", url: "/", icon: LayoutDashboard },
+  { title: "Dashboard", url: "/", icon: LayoutDashboard },
+  { title: "Gallery", url: "/gallery", icon: Image },
   { title: "Collections", url: "/collections", icon: FolderOpen },
   { title: "Codex", url: "/codex", icon: BookOpen },
   { title: "Stories", url: "/stories", icon: BookText },
@@ -41,11 +47,12 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const location = useLocation();
-  const currentPath = location.pathname;
+  const navigate = useNavigate();
+  const { user, signOut } = useAuth();
 
   const isActive = (path: string) => {
-    if (path === "/") return currentPath === "/";
-    return currentPath.startsWith(path);
+    if (path === "/") return location.pathname === "/";
+    return location.pathname.startsWith(path);
   };
 
   return (
@@ -54,7 +61,7 @@ export function AppSidebar() {
         {!collapsed ? (
           <div>
             <h1 className="font-serif text-xl tracking-tight text-sidebar-primary">Orbit</h1>
-            <p className="catalog-num mt-0.5">Archive No. 001</p>
+            <p className="catalog-num mt-0.5">Creative OS</p>
           </div>
         ) : (
           <span className="font-serif text-lg text-sidebar-primary text-center block">O</span>
@@ -63,9 +70,7 @@ export function AppSidebar() {
 
       <SidebarContent className="px-2 pt-4">
         <SidebarGroup>
-          <SidebarGroupLabel className="section-label px-3 pb-2">
-            Catalogue
-          </SidebarGroupLabel>
+          <SidebarGroupLabel className="section-label px-3 pb-2">Catalogue</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {mainNav.map((item) => (
@@ -90,9 +95,7 @@ export function AppSidebar() {
         <div className="mx-3 my-4 border-t border-border" />
 
         <SidebarGroup>
-          <SidebarGroupLabel className="section-label px-3 pb-2">
-            Views
-          </SidebarGroupLabel>
+          <SidebarGroupLabel className="section-label px-3 pb-2">Views</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {viewsNav.map((item) => (
@@ -116,17 +119,41 @@ export function AppSidebar() {
 
       <SidebarFooter className="border-t border-border">
         <SidebarMenu>
+          {user && (
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                <NavLink
+                  to="/upload"
+                  className="rounded-none font-mono text-xs tracking-wide"
+                  activeClassName="bg-secondary text-foreground"
+                >
+                  <Upload className="mr-2.5 h-3.5 w-3.5" strokeWidth={1.5} />
+                  {!collapsed && <span>Upload</span>}
+                </NavLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
           <SidebarMenuItem>
-            <SidebarMenuButton asChild isActive={isActive("/settings")}>
-              <NavLink
-                to="/settings"
+            {user ? (
+              <SidebarMenuButton
+                onClick={async () => { await signOut(); navigate("/"); }}
                 className="rounded-none font-mono text-xs tracking-wide"
-                activeClassName="bg-secondary text-foreground"
               >
-                <Settings className="mr-2.5 h-3.5 w-3.5" strokeWidth={1.5} />
-                {!collapsed && <span>Settings</span>}
-              </NavLink>
-            </SidebarMenuButton>
+                <LogOut className="mr-2.5 h-3.5 w-3.5" strokeWidth={1.5} />
+                {!collapsed && <span>Logout</span>}
+              </SidebarMenuButton>
+            ) : (
+              <SidebarMenuButton asChild>
+                <NavLink
+                  to="/auth"
+                  className="rounded-none font-mono text-xs tracking-wide"
+                  activeClassName="bg-secondary text-foreground"
+                >
+                  <LogIn className="mr-2.5 h-3.5 w-3.5" strokeWidth={1.5} />
+                  {!collapsed && <span>Sign In</span>}
+                </NavLink>
+              </SidebarMenuButton>
+            )}
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
