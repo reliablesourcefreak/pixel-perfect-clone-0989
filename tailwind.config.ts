@@ -14,8 +14,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        serif: ["Playfair Display", "Georgia", "serif"],
-        mono: ["IBM Plex Mono", "Menlo", "monospace"],
+        serif: ["EB Garamond", "Georgia", "serif"],
+        mono: ["JetBrains Mono", "Menlo", "monospace"],
         sans: ["Inter", "system-ui", "sans-serif"],
       },
       colors: {
@@ -72,6 +72,9 @@ export default {
         lg: "0px",
         md: "0px",
         sm: "0px",
+      },
+      gap: {
+        'gallery': '40px',
       },
       keyframes: {
         "accordion-down": {

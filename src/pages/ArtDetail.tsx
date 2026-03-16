@@ -121,7 +121,7 @@ export default function ArtDetail() {
   return (
     <div className="max-w-7xl mx-auto">
       {/* Top bar */}
-      <div className="px-8 py-3 border-b border-border flex items-center justify-between">
+      <div className="px-10 py-4 border-b border-border flex items-center justify-between">
         <button
           onClick={() => navigate("/gallery")}
           className="font-mono text-xs text-muted-foreground hover:text-foreground tracking-widest uppercase transition-colors"
@@ -133,7 +133,7 @@ export default function ArtDetail() {
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr] min-h-[calc(100vh-8rem)]">
         {/* Image */}
-        <div className="border-r border-border p-8 flex items-start justify-center">
+        <div className="border-r border-border p-10 flex items-start justify-center bg-card">
           <img
             src={artwork.image_url}
             alt={artwork.title}
@@ -142,7 +142,7 @@ export default function ArtDetail() {
         </div>
 
         {/* Analysis panel */}
-        <div className="p-8 space-y-8 overflow-auto">
+        <div className="p-10 space-y-10 overflow-auto">
           <div>
             <span className="catalog-num">Artwork</span>
             <h1 className="font-serif text-3xl mt-2 text-foreground">{artwork.title}</h1>
