@@ -41,7 +41,6 @@ export default function UploadArtwork() {
     setUploading(true);
 
     try {
-      // 1. Upload image to storage
       const ext = file.name.split(".").pop();
       const path = `${user.id}/${Date.now()}.${ext}`;
       const { error: uploadError } = await supabase.storage.from("artworks").upload(path, file);
@@ -50,7 +49,6 @@ export default function UploadArtwork() {
       const { data: urlData } = supabase.storage.from("artworks").getPublicUrl(path);
       const imageUrl = urlData.publicUrl;
 
-      // 2. Create artwork record
       const { data: artwork, error: insertError } = await supabase
         .from("artworks")
         .insert({
@@ -68,7 +66,6 @@ export default function UploadArtwork() {
       setUploading(false);
       setAnalyzing(true);
 
-      // 3. Trigger AI analysis
       const { error: fnError } = await supabase.functions.invoke("analyze-artwork", {
         body: { artwork_id: artwork.id, image_url: imageUrl },
       });
@@ -91,7 +88,7 @@ export default function UploadArtwork() {
   const isProcessing = uploading || analyzing;
 
   return (
-    <div className="px-10 pt-[100px] pb-16 max-w-3xl mx-auto">
+    <div className="px-8 py-10 max-w-3xl mx-auto">
       <div className="mb-10">
         <span className="catalog-num">New Submission</span>
         <h1 className="font-serif text-3xl mt-2 text-foreground">Upload Artwork</h1>
