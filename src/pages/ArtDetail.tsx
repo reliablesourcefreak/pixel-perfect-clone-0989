@@ -133,7 +133,7 @@ export default function ArtDetail() {
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr] min-h-[calc(100vh-8rem)]">
         {/* Image */}
-        <div className="border-r border-border p-8 flex items-start justify-center">
+        <div className="border-r border-border p-10 flex items-start justify-center bg-card">
           <img
             src={artwork.image_url}
             alt={artwork.title}
