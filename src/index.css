@@ -2,11 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
-@import '@fontsource/eb-garamond/400.css';
-@import '@fontsource/eb-garamond/400-italic.css';
-@import '@fontsource/eb-garamond/700.css';
-@import '@fontsource/jetbrains-mono/400.css';
-@import '@fontsource/jetbrains-mono/500.css';
+@import '@fontsource/playfair-display/400.css';
+@import '@fontsource/playfair-display/400-italic.css';
+@import '@fontsource/playfair-display/700.css';
+@import '@fontsource/ibm-plex-mono/400.css';
+@import '@fontsource/ibm-plex-mono/500.css';
+@import '@fontsource/ibm-plex-mono/600.css';
 @import '@fontsource/inter/400.css';
 @import '@fontsource/inter/500.css';
 
@@ -19,19 +20,19 @@
 @layer base {
   :root {
     --background: 50 14% 97%;
-    --foreground: 0 0% 13%;
+    --foreground: 0 0% 12%;
 
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 13%;
+    --card-foreground: 0 0% 12%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 13%;
+    --popover: 50 20% 99%;
+    --popover-foreground: 0 0% 12%;
 
-    --primary: 0 0% 13%;
+    --primary: 0 0% 12%;
     --primary-foreground: 50 14% 97%;
 
     --secondary: 50 8% 92%;
-    --secondary-foreground: 0 0% 13%;
+    --secondary-foreground: 0 0% 12%;
 
     --accent: 0 72% 51%;
     --accent-foreground: 0 0% 100%;
@@ -42,31 +43,31 @@
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 92%;
-    --input: 0 0% 92%;
-    --ring: 0 0% 13%;
+    --border: 0 0% 82%;
+    --input: 0 0% 82%;
+    --ring: 0 0% 12%;
 
     --radius: 0px;
 
     /* Sidebar */
-    --sidebar-background: 0 0% 100%;
+    --sidebar-background: 50 14% 97%;
     --sidebar-foreground: 0 0% 35%;
-    --sidebar-primary: 0 0% 13%;
+    --sidebar-primary: 0 0% 12%;
     --sidebar-primary-foreground: 50 14% 97%;
-    --sidebar-accent: 50 8% 94%;
-    --sidebar-accent-foreground: 0 0% 13%;
-    --sidebar-border: 0 0% 92%;
-    --sidebar-ring: 0 0% 13%;
+    --sidebar-accent: 50 8% 92%;
+    --sidebar-accent-foreground: 0 0% 12%;
+    --sidebar-border: 0 0% 82%;
+    --sidebar-ring: 0 0% 12%;
 
     /* Archive tokens */
     --archive-red: 0 72% 51%;
     --archive-warm: 50 14% 97%;
-    --archive-rule: 0 0% 92%;
+    --archive-rule: 0 0% 82%;
     --archive-dim: 0 0% 55%;
     --archive-specimen: 50 20% 95%;
 
-    --font-serif: 'EB Garamond', 'Georgia', serif;
-    --font-mono: 'JetBrains Mono', 'Menlo', monospace;
+    --font-serif: 'Playfair Display', 'Georgia', serif;
+    --font-mono: 'IBM Plex Mono', 'Menlo', monospace;
     --font-sans: 'Inter', system-ui, sans-serif;
   }
 
@@ -104,7 +105,6 @@
 @layer base {
   * {
     @apply border-border;
-    box-shadow: none !important;
   }
 
   body {
@@ -117,7 +117,6 @@
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-serif);
     letter-spacing: -0.01em;
-    color: hsl(0 0% 13%);
   }
 
   hr {
@@ -138,7 +137,7 @@
     font-family: var(--font-sans);
   }
 
-  /* Forensic overlay — fades in on hover */
+  /* Forensic overlay */
   .forensic-overlay {
     @apply absolute inset-0 bg-foreground/90 opacity-0 transition-opacity duration-300;
   }
@@ -162,7 +161,7 @@
   /* Catalog number style */
   .catalog-num {
     font-family: var(--font-mono);
-    font-size: 11px;
+    font-size: 10px;
     letter-spacing: 0.12em;
     text-transform: uppercase;
     color: hsl(var(--archive-dim));
@@ -170,17 +169,9 @@
 
   .section-label {
     font-family: var(--font-mono);
-    font-size: 11px;
+    font-size: 10px;
     letter-spacing: 0.15em;
     text-transform: uppercase;
-    color: hsl(var(--muted-foreground));
-  }
-
-  /* Metadata font — monospace at 11px */
-  .meta-text {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    letter-spacing: 0.04em;
     color: hsl(var(--muted-foreground));
   }
 }

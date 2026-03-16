@@ -5,8 +5,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus, Search, RefreshCw } from "lucide-react";
-import { GalleryFilters } from "@/components/gallery/GalleryFilters";
-import { GalleryGrid } from "@/components/gallery/GalleryGrid";
 
 interface ArtworkWithTags {
   id: string;
@@ -91,19 +89,21 @@ export default function Gallery() {
   }, [artworks, searchQuery, selectedCategory, selectedTag]);
 
   return (
-    <div className="px-10 pt-[100px] pb-16 max-w-7xl mx-auto">
+    <div className="px-8 py-10 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="mb-16 flex items-end justify-between">
+      <div className="mb-10 flex items-end justify-between">
         <div>
           <span className="catalog-num">Collection</span>
-          <h1 className="font-serif text-5xl mt-3 text-foreground leading-tight">
-            AI Art Archive
+          <h1 className="font-serif text-5xl mt-2 text-foreground leading-tight">
+            AI<br />
+            <span className="text-accent">Art</span><br />
+            Archive
           </h1>
-          <p className="meta-text mt-5 max-w-lg leading-relaxed">
+          <p className="font-mono text-xs text-muted-foreground mt-4 tracking-wide max-w-md">
             Upload AI-generated artwork. The system automatically analyzes visual style,
             assigns categories, generates descriptors, and maps relationships between pieces.
           </p>
-          <p className="meta-text mt-2">
+          <p className="font-mono text-xs text-muted-foreground mt-2 tracking-wide">
             {artworks.length} works in collection
           </p>
         </div>
@@ -115,30 +115,160 @@ export default function Gallery() {
         )}
       </div>
 
-      <div className="border-t border-border mb-12" />
+      <div className="border-t border-accent mb-8 border-2" />
 
-      <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-16">
+      <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-10">
         {/* Sidebar filters */}
-        <GalleryFilters
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          categories={CATEGORIES}
-          categoryCounts={categoryCounts}
-          selectedCategory={selectedCategory}
-          onCategoryChange={setSelectedCategory}
-          allTags={allTags}
-          selectedTag={selectedTag}
-          onTagChange={setSelectedTag}
-        />
+        <aside className="space-y-8">
+          {/* Search */}
+          <div>
+            <span className="section-label">Search</span>
+            <div className="mt-2 relative">
+              <Input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Title, description..."
+                className="rounded-none pr-8"
+              />
+              <Search className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" strokeWidth={1.5} />
+            </div>
+          </div>
+
+          {/* Categories */}
+          <div>
+            <span className="section-label">Categories</span>
+            <div className="mt-2 border border-border divide-y divide-border">
+              {CATEGORIES.map((cat) => {
+                const count = categoryCounts.get(cat) || 0;
+                const isActive = selectedCategory === cat;
+                return (
+                  <button
+                    key={cat}
+                    onClick={() => setSelectedCategory(isActive ? null : cat)}
+                    className={`w-full flex items-center justify-between p-2.5 font-mono text-xs tracking-wide transition-colors ${
+                      isActive ? "bg-secondary text-foreground" : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="h-2 w-2 bg-accent inline-block" style={{ opacity: count > 0 ? 1 : 0.2 }} />
+                      <span>{cat}</span>
+                    </div>
+                    <span>{count}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Tags */}
+          {allTags.length > 0 && (
+            <div>
+              <span className="section-label">Tags</span>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {allTags.map(([tag, count]) => (
+                  <button
+                    key={tag}
+                    onClick={() => setSelectedTag(selectedTag === tag ? null : tag)}
+                    className={`font-mono text-[10px] tracking-wide px-2 py-1 border transition-colors ${
+                      selectedTag === tag
+                        ? "bg-foreground text-primary-foreground border-foreground"
+                        : "bg-transparent text-muted-foreground border-border hover:border-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {tag}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </aside>
 
         {/* Gallery grid */}
-        <GalleryGrid
-          artworks={filtered}
-          loading={loading}
-          totalCount={artworks.length}
-          onRefresh={fetchArtworks}
-          onArtworkClick={(id) => navigate(`/gallery/${id}`)}
-        />
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <span className="font-mono text-xs text-foreground tracking-wide font-medium">All Works</span>
+              <p className="font-mono text-xs text-muted-foreground tracking-wide">
+                {filtered.length} artwork{filtered.length !== 1 ? "s" : ""}
+              </p>
+            </div>
+            <button
+              onClick={fetchArtworks}
+              className="font-mono text-xs text-muted-foreground hover:text-foreground tracking-wide flex items-center gap-1.5 transition-colors"
+            >
+              <RefreshCw className="h-3 w-3" strokeWidth={1.5} /> Refresh
+            </button>
+          </div>
+
+          <div className="border-t border-border mb-6" />
+
+          {loading ? (
+            <div className="border border-border p-16 text-center">
+              <p className="font-mono text-xs text-muted-foreground tracking-wide animate-pulse">
+                Loading archive…
+              </p>
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="border border-border p-16 text-center">
+              <p className="font-mono text-xs text-muted-foreground tracking-wide">
+                {artworks.length === 0 ? "No artworks in archive. Upload your first piece." : "No results match your filters."}
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-px bg-border border border-border">
+              {filtered.map((art) => (
+                <div
+                  key={art.id}
+                  onClick={() => navigate(`/gallery/${art.id}`)}
+                  className="group cursor-pointer bg-background"
+                >
+                  <div className="relative aspect-square overflow-hidden">
+                    <img
+                      src={art.image_url}
+                      alt={art.title}
+                      className="h-full w-full object-cover transition-all duration-700"
+                      loading="lazy"
+                    />
+                    {/* Status indicator */}
+                    {art.analysis_status === "complete" && (
+                      <div className="absolute top-3 right-3 h-5 w-5 border border-primary-foreground/30 bg-accent/80 flex items-center justify-center">
+                        <span className="text-primary-foreground text-[8px]">✓</span>
+                      </div>
+                    )}
+                    {/* Forensic overlay on hover */}
+                    <div className="forensic-overlay p-5 flex flex-col justify-end font-mono text-primary-foreground">
+                      <span className="text-[10px] tracking-widest uppercase opacity-60">
+                        {art.analysis_status === "complete" ? "Analysis Complete" : art.analysis_status.toUpperCase()}
+                      </span>
+                      <span className="text-sm font-serif mt-1.5">{art.title}</span>
+                      {art.categories.length > 0 && (
+                        <div className="flex gap-2 mt-3">
+                          {art.categories.slice(0, 3).map((c) => (
+                            <span key={c.category} className="text-[10px] opacity-70">
+                              {c.category} {c.confidence}%
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      {art.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-2">
+                          {art.tags.slice(0, 4).map((t) => (
+                            <span key={t.tag} className="text-[9px] px-1.5 py-0.5 border border-primary-foreground/30">
+                              {t.tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="p-3 border-t border-border">
+                    <h4 className="font-serif text-sm text-foreground truncate">{art.title}</h4>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
