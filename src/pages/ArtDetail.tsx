@@ -121,7 +121,7 @@ export default function ArtDetail() {
   return (
     <div className="max-w-7xl mx-auto">
       {/* Top bar */}
-      <div className="px-8 py-3 border-b border-border flex items-center justify-between">
+      <div className="px-10 py-4 border-b border-border flex items-center justify-between">
         <button
           onClick={() => navigate("/gallery")}
           className="font-mono text-xs text-muted-foreground hover:text-foreground tracking-widest uppercase transition-colors"
