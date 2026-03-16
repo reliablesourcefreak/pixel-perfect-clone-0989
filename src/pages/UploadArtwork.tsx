@@ -91,7 +91,7 @@ export default function UploadArtwork() {
   const isProcessing = uploading || analyzing;
 
   return (
-    <div className="px-8 py-10 max-w-3xl mx-auto">
+    <div className="px-10 pt-[100px] pb-16 max-w-3xl mx-auto">
       <div className="mb-10">
         <span className="catalog-num">New Submission</span>
         <h1 className="font-serif text-3xl mt-2 text-foreground">Upload Artwork</h1>

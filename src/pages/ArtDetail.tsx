@@ -142,7 +142,7 @@ export default function ArtDetail() {
         </div>
 
         {/* Analysis panel */}
-        <div className="p-8 space-y-8 overflow-auto">
+        <div className="p-10 space-y-10 overflow-auto">
           <div>
             <span className="catalog-num">Artwork</span>
             <h1 className="font-serif text-3xl mt-2 text-foreground">{artwork.title}</h1>
