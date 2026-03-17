@@ -16,6 +16,8 @@ import CodexDetail from "@/pages/CodexDetail";
 import Stories from "@/pages/Stories";
 import StoryDetail from "@/pages/StoryDetail";
 import Timeline from "@/pages/Timeline";
+import Mindmap from "@/pages/Mindmap";
+import Exports from "@/pages/Exports";
 import ComingSoon from "@/pages/ComingSoon";
 import Auth from "@/pages/Auth";
 import NotFound from "@/pages/NotFound";
@@ -50,8 +52,8 @@ const App = () => (
               <Route path="/stories" element={<Stories />} />
               <Route path="/stories/:id" element={<StoryDetail />} />
               <Route path="/timeline" element={<Timeline />} />
-              <Route path="/mindmap" element={<ComingSoon title="Mindmap" description="Visual relationship graph connecting your artworks, codex entries, and stories. Coming soon." />} />
-              <Route path="/exports" element={<ComingSoon title="Exports" description="Package and deploy your creative work as web galleries, PDF portfolios, and more. Coming soon." />} />
+              <Route path="/mindmap" element={<Mindmap />} />
+              <Route path="/exports" element={<Exports />} />
               <Route path="/settings" element={<ComingSoon title="Settings" description="Configure your workspace preferences, themes, and integrations. Coming soon." />} />
             </Route>
             <Route path="*" element={<NotFound />} />
