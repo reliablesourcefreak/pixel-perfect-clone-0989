@@ -16,6 +16,8 @@ import CodexDetail from "@/pages/CodexDetail";
 import Stories from "@/pages/Stories";
 import StoryDetail from "@/pages/StoryDetail";
 import Timeline from "@/pages/Timeline";
+import Mindmap from "@/pages/Mindmap";
+import Exports from "@/pages/Exports";
 import ComingSoon from "@/pages/ComingSoon";
 import Auth from "@/pages/Auth";
 import NotFound from "@/pages/NotFound";
