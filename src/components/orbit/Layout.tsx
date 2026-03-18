@@ -1,13 +1,11 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
 import { Outlet } from "react-router-dom";
-import { Search, Menu } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { Menu } from "lucide-react";
+import { ThemeToggle } from "./ThemeToggle";
+import { CommandPalette } from "./CommandPalette";
 
 export default function Layout() {
-  const [searchOpen, setSearchOpen] = useState(false);
-
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
@@ -19,25 +17,17 @@ export default function Layout() {
                 <Menu className="h-4 w-4" strokeWidth={1.5} />
               </SidebarTrigger>
               <span className="catalog-num hidden sm:block">
-                Museum Archive — Digital Catalogue System
+                Art Archive — Digital Catalogue
               </span>
             </div>
-            <div className="flex items-center">
-              {searchOpen ? (
-                <Input
-                  placeholder="Search archive…"
-                  className="w-56 h-7 text-xs font-mono rounded-none border-foreground animate-fade-up"
-                  autoFocus
-                  onBlur={() => setSearchOpen(false)}
-                />
-              ) : (
-                <button
-                  onClick={() => setSearchOpen(true)}
-                  className="text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <Search className="h-4 w-4" strokeWidth={1.5} />
-                </button>
-              )}
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => document.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true }))}
+                className="hidden sm:flex items-center gap-2 font-mono text-[10px] text-muted-foreground hover:text-foreground border border-border px-2.5 py-1 tracking-wide transition-colors"
+              >
+                Search <kbd className="text-[9px] px-1 bg-secondary border border-border">⌘K</kbd>
+              </button>
+              <ThemeToggle />
             </div>
           </header>
           <main className="flex-1 overflow-auto">
@@ -45,6 +35,7 @@ export default function Layout() {
           </main>
         </div>
       </div>
+      <CommandPalette />
     </SidebarProvider>
   );
 }

@@ -18,7 +18,7 @@ import StoryDetail from "@/pages/StoryDetail";
 import Timeline from "@/pages/Timeline";
 import Mindmap from "@/pages/Mindmap";
 import Exports from "@/pages/Exports";
-import ComingSoon from "@/pages/ComingSoon";
+import Settings from "@/pages/Settings";
 import Auth from "@/pages/Auth";
 import NotFound from "@/pages/NotFound";
 
@@ -54,7 +54,7 @@ const App = () => (
               <Route path="/timeline" element={<Timeline />} />
               <Route path="/mindmap" element={<Mindmap />} />
               <Route path="/exports" element={<Exports />} />
-              <Route path="/settings" element={<ComingSoon title="Settings" description="Configure your workspace preferences, themes, and integrations. Coming soon." />} />
+              <Route path="/settings" element={<Settings />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
