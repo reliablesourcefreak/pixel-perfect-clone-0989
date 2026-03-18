@@ -121,6 +121,7 @@ export type Database = {
           height: number | null
           id: string
           image_url: string
+          is_favorited: boolean
           title: string
           updated_at: string
           user_id: string
@@ -133,6 +134,7 @@ export type Database = {
           height?: number | null
           id?: string
           image_url: string
+          is_favorited?: boolean
           title: string
           updated_at?: string
           user_id: string
@@ -145,6 +147,7 @@ export type Database = {
           height?: number | null
           id?: string
           image_url?: string
+          is_favorited?: boolean
           title?: string
           updated_at?: string
           user_id?: string
