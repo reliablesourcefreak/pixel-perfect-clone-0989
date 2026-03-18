@@ -42,6 +42,7 @@ const viewsNav = [
   { title: "Timeline", url: "/timeline", icon: Clock },
   { title: "Mindmap", url: "/mindmap", icon: Network },
   { title: "Exports", url: "/exports", icon: Download },
+  { title: "Settings", url: "/settings", icon: Settings },
 ];
 
 export function AppSidebar() {
