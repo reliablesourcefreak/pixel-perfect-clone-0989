@@ -155,6 +155,78 @@ export type Database = {
         }
         Relationships: []
       }
+      collection_artworks: {
+        Row: {
+          added_at: string
+          artwork_id: string
+          collection_id: string
+          id: string
+        }
+        Insert: {
+          added_at?: string
+          artwork_id: string
+          collection_id: string
+          id?: string
+        }
+        Update: {
+          added_at?: string
+          artwork_id?: string
+          collection_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collection_artworks_artwork_id_fkey"
+            columns: ["artwork_id"]
+            isOneToOne: false
+            referencedRelation: "artworks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "collection_artworks_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "collections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      collections: {
+        Row: {
+          color: string
+          cover_image_url: string | null
+          created_at: string
+          description: string
+          id: string
+          is_pinned: boolean
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          color?: string
+          cover_image_url?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          is_pinned?: boolean
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          color?: string
+          cover_image_url?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          is_pinned?: boolean
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
