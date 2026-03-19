@@ -9,7 +9,6 @@ import { toast } from "@/hooks/use-toast";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 
 const CATEGORY_COLORS: Record<string, string> = {
   "Digital": "hsl(210, 80%, 55%)", "3D Render": "hsl(280, 65%, 55%)",
