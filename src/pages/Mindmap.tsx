@@ -55,17 +55,45 @@ export default function Mindmap() {
         categories: (cats || []).filter(c => c.artwork_id === a.id).map(c => c.category),
       }));
 
-      // Build edges based on shared tags/categories
+      // Compute tag frequency across all artworks (for IDF-like weighting)
+      const tagFrequency = new Map<string, number>();
+      artNodes.forEach(n => n.tags.forEach(t => tagFrequency.set(t, (tagFrequency.get(t) || 0) + 1)));
+      const totalArtworks = artNodes.length;
+
+      // Generic tags that appear on most artworks — low signal
+      const GENERIC_TAGS = new Set([
+        "digital art", "digital", "graphic design", "illustration", "art",
+        "design", "modern art", "contemporary", "creative", "artwork",
+      ]);
+
+      // Score a shared tag by rarity: rarer tags = stronger signal
+      const tagScore = (tag: string): number => {
+        if (GENERIC_TAGS.has(tag)) return 0.05; // near-zero weight
+        const freq = tagFrequency.get(tag) || 1;
+        // Inverse frequency: tag appearing in 1 artwork = score 1, in all = ~0
+        return Math.max(0, 1 - (freq - 1) / Math.max(totalArtworks - 1, 1));
+      };
+
+      // Build edges with relevance scoring
       const edgeList: Edge[] = [];
       for (let i = 0; i < artNodes.length; i++) {
         for (let j = i + 1; j < artNodes.length; j++) {
           const sharedTags = artNodes[i].tags.filter(t => artNodes[j].tags.includes(t));
           const sharedCats = artNodes[i].categories.filter(c => artNodes[j].categories.includes(c));
 
+          // Tag edge: require meaningful overlap — sum rarity scores
           if (sharedTags.length >= 2) {
-            edgeList.push({ from: artNodes[i].id, to: artNodes[j].id, shared: sharedTags.slice(0, 3), type: "tag" });
+            const relevance = sharedTags.reduce((sum, t) => sum + tagScore(t), 0);
+            // Only connect if cumulative relevance is significant (not just generic overlap)
+            if (relevance >= 0.8) {
+              // Sort by score descending, show the most meaningful shared tags
+              const ranked = sharedTags.sort((a, b) => tagScore(b) - tagScore(a)).slice(0, 3);
+              edgeList.push({ from: artNodes[i].id, to: artNodes[j].id, shared: ranked, type: "tag" });
+            }
           }
-          if (sharedCats.length >= 1) {
+
+          // Category edge: require 2+ shared categories for a meaningful thematic link
+          if (sharedCats.length >= 2) {
             edgeList.push({ from: artNodes[i].id, to: artNodes[j].id, shared: sharedCats, type: "category" });
           }
         }
