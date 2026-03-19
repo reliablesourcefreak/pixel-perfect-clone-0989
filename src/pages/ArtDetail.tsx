@@ -247,7 +247,7 @@ export default function ArtDetail() {
                   <div className="flex flex-wrap gap-2">
                     {artwork.categories.map((c) => (
                       <div key={c.category} className="flex items-center gap-2 border border-border px-3 py-1.5">
-                        <span className="h-2 w-2 bg-accent inline-block" />
+                        <span className="h-2 w-2 inline-block" style={{ backgroundColor: CATEGORY_COLORS[c.category] || "hsl(0,0%,50%)" }} />
                         <span className="font-mono text-xs text-foreground font-medium">{c.category}</span>
                         <span className="font-mono text-[10px] text-muted-foreground">{c.confidence}%</span>
                       </div>
