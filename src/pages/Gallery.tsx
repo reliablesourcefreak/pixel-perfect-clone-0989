@@ -165,7 +165,7 @@ export default function Gallery() {
                     }`}
                   >
                     <div className="flex items-center gap-2">
-                      <span className="h-2 w-2 bg-accent inline-block" style={{ opacity: count > 0 ? 1 : 0.2 }} />
+                      <span className="h-2 w-2 inline-block" style={{ backgroundColor: CATEGORY_COLORS[cat] || "hsl(0,0%,50%)", opacity: count > 0 ? 1 : 0.2 }} />
                       <span>{cat}</span>
                     </div>
                     <span>{count}</span>
