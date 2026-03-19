@@ -22,6 +22,21 @@ const CATEGORIES = [
   "Illustration", "Photography Style"
 ];
 
+const CATEGORY_COLORS: Record<string, string> = {
+  "Digital": "hsl(210, 80%, 55%)",
+  "3D Render": "hsl(280, 65%, 55%)",
+  "Concept Art": "hsl(35, 85%, 55%)",
+  "Abstract": "hsl(330, 70%, 55%)",
+  "Fantasy": "hsl(160, 60%, 45%)",
+  "Sci-Fi": "hsl(195, 85%, 50%)",
+  "Portrait": "hsl(15, 75%, 55%)",
+  "Landscape": "hsl(120, 50%, 45%)",
+  "Architecture": "hsl(45, 70%, 50%)",
+  "Character": "hsl(350, 65%, 50%)",
+  "Illustration": "hsl(260, 60%, 55%)",
+  "Photography Style": "hsl(80, 50%, 45%)",
+};
+
 export default function Gallery() {
   const [artworks, setArtworks] = useState<ArtworkWithTags[]>([]);
   const [loading, setLoading] = useState(true);
