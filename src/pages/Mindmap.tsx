@@ -360,11 +360,11 @@ export default function Mindmap() {
             <div className="mt-2 space-y-1.5">
               <div className="flex items-center gap-2">
                 <div className="w-6 h-px bg-foreground" />
-                <span className="font-mono text-[9px] text-muted-foreground">Category link</span>
+                <span className="font-mono text-[9px] text-muted-foreground">Category link (2+ shared)</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-6 h-px bg-foreground" style={{ borderTop: "1px dashed" }} />
-                <span className="font-mono text-[9px] text-muted-foreground">Tag link (2+ shared)</span>
+                <span className="font-mono text-[9px] text-muted-foreground">Tag link (relevance-scored)</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="h-3 w-3 bg-accent" />
