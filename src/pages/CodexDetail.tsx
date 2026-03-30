@@ -1,47 +1,140 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { store } from "@/lib/store";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { Trash2, Save } from "lucide-react";
-import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { ArtworkCard } from "@/components/orbit/ArtworkCard";
+import { Textarea } from "@/components/ui/textarea";
+import { Trash2, Save, Plus, X, Search, Loader2, Sparkles } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog";
+
+interface CodexData {
+  id: string;
+  title: string;
+  type: string;
+  content: string;
+  ai_summary: string | null;
+  user_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface LinkedArtwork {
+  id: string;
+  title: string;
+  image_url: string;
+}
 
 export default function CodexDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [entry, setEntry] = useState(() => store.getCodexEntry(id || ""));
+  const { user } = useAuth();
+  const [entry, setEntry] = useState<CodexData | null>(null);
+  const [linkedArtworks, setLinkedArtworks] = useState<LinkedArtwork[]>([]);
+  const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
-  const [title, setTitle] = useState(entry?.title || "");
-  const [content, setContent] = useState(entry?.content || "");
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
+  const [addOpen, setAddOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const [allArtworks, setAllArtworks] = useState<LinkedArtwork[]>([]);
+  const [summarizing, setSummarizing] = useState(false);
 
-  if (!entry) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <p className="font-mono text-xs text-muted-foreground">Entry not found in archive</p>
-      </div>
-    );
-  }
-
-  const linkedArtworks = store.getArtworks().filter((a) => entry.linkedArtworkIds.includes(a.id));
-
-  const handleSave = () => {
-    const updated = store.saveCodexEntry({ ...entry, title, content });
-    setEntry(updated);
-    setEditing(false);
+  const fetchData = async () => {
+    if (!id) return;
+    setLoading(true);
+    const [{ data: row }, { data: links }] = await Promise.all([
+      supabase.from("codex_entries").select("*").eq("id", id).single(),
+      supabase.from("codex_artwork_links").select("artwork_id, artworks(id, title, image_url)").eq("codex_entry_id", id),
+    ]);
+    if (!row) { setLoading(false); return; }
+    setEntry(row as CodexData);
+    setTitle(row.title);
+    setContent(row.content);
+    setLinkedArtworks((links || []).map(l => (l as any).artworks).filter(Boolean));
+    setLoading(false);
   };
 
-  const handleDelete = () => {
-    store.deleteCodexEntry(entry.id);
+  useEffect(() => { fetchData(); }, [id]);
+
+  const isOwner = user?.id === entry?.user_id;
+
+  const handleSave = async () => {
+    if (!entry) return;
+    await supabase.from("codex_entries").update({ title, content }).eq("id", entry.id);
+    setEntry({ ...entry, title, content });
+    setEditing(false);
+    toast({ title: "Entry updated" });
+  };
+
+  const handleDelete = async () => {
+    if (!entry || !confirm("Delete this codex entry?")) return;
+    await supabase.from("codex_entries").delete().eq("id", entry.id);
+    toast({ title: "Entry deleted" });
     navigate("/codex");
   };
 
+  const handleAiSummary = async () => {
+    if (!entry || !entry.content.trim()) return;
+    setSummarizing(true);
+    try {
+      const res = await supabase.functions.invoke("analyze-artwork", {
+        body: {
+          mode: "codex-summary",
+          title: entry.title,
+          type: entry.type,
+          content: entry.content,
+        },
+      });
+      const summary = res.data?.summary;
+      if (summary) {
+        await supabase.from("codex_entries").update({ ai_summary: summary }).eq("id", entry.id);
+        setEntry({ ...entry, ai_summary: summary });
+        toast({ title: "AI summary generated" });
+      }
+    } catch {
+      toast({ title: "Could not generate summary", variant: "destructive" });
+    }
+    setSummarizing(false);
+  };
+
+  const openAddDialog = async () => {
+    const { data } = await supabase.from("artworks").select("id, title, image_url").order("created_at", { ascending: false });
+    setAllArtworks(data || []);
+    setAddOpen(true);
+  };
+
+  const addArtwork = async (artworkId: string) => {
+    if (!id) return;
+    if (linkedArtworks.some(a => a.id === artworkId)) { toast({ title: "Already linked" }); return; }
+    const { error } = await supabase.from("codex_artwork_links").insert({ codex_entry_id: id, artwork_id: artworkId });
+    if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
+    const added = allArtworks.find(a => a.id === artworkId);
+    if (added) setLinkedArtworks(prev => [...prev, added]);
+    toast({ title: "Artwork linked" });
+  };
+
+  const removeArtwork = async (artworkId: string) => {
+    if (!id) return;
+    await supabase.from("codex_artwork_links").delete().eq("codex_entry_id", id).eq("artwork_id", artworkId);
+    setLinkedArtworks(prev => prev.filter(a => a.id !== artworkId));
+    toast({ title: "Artwork unlinked" });
+  };
+
+  const linkedIds = new Set(linkedArtworks.map(a => a.id));
+  const filteredAll = allArtworks.filter(a =>
+    !linkedIds.has(a.id) && (!search || a.title.toLowerCase().includes(search.toLowerCase()))
+  );
+
+  if (loading) return <div className="flex items-center justify-center min-h-[60vh]"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
+  if (!entry) return <div className="flex items-center justify-center min-h-[60vh]"><p className="font-mono text-xs text-muted-foreground">Entry not found in archive</p></div>;
+
   return (
     <div className="px-8 py-10 max-w-4xl mx-auto space-y-10">
-      <button
-        onClick={() => navigate("/codex")}
-        className="font-mono text-xs text-muted-foreground hover:text-foreground tracking-wide uppercase transition-colors"
-      >
+      <button onClick={() => navigate("/codex")} className="font-mono text-xs text-muted-foreground hover:text-foreground tracking-widest uppercase transition-colors">
         ← Codex
       </button>
 
@@ -50,7 +143,7 @@ export default function CodexDetail() {
           <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-muted-foreground border border-border px-2 py-0.5">
             {entry.type.toUpperCase()}
           </span>
-          <span className="catalog-num">{new Date(entry.createdAt).toISOString().split("T")[0]}</span>
+          <span className="catalog-num">{new Date(entry.created_at).toISOString().split("T")[0]}</span>
         </div>
 
         {editing ? (
@@ -60,20 +153,37 @@ export default function CodexDetail() {
         )}
       </div>
 
-      <div className="flex gap-3">
-        {editing ? (
-          <Button variant="archive" size="sm" onClick={handleSave}>
-            <Save className="h-3 w-3 mr-1.5" strokeWidth={1.5} /> Save
+      {/* AI Summary */}
+      {entry.ai_summary && (
+        <div className="border border-accent/30 bg-accent/5 p-5">
+          <span className="font-mono text-[10px] tracking-widest uppercase text-accent">AI Summary</span>
+          <p className="font-mono text-xs text-foreground mt-2 leading-relaxed">{entry.ai_summary}</p>
+        </div>
+      )}
+
+      {/* Actions */}
+      {isOwner && (
+        <div className="flex gap-3 flex-wrap">
+          {editing ? (
+            <Button variant="archive" size="sm" onClick={handleSave}>
+              <Save className="h-3 w-3 mr-1.5" strokeWidth={1.5} /> Save
+            </Button>
+          ) : (
+            <Button variant="archive" size="sm" onClick={() => setEditing(true)}>
+              Edit Entry
+            </Button>
+          )}
+          <Button variant="outline" size="sm" onClick={openAddDialog} className="font-mono text-xs">
+            <Plus className="h-3 w-3 mr-1.5" strokeWidth={1.5} /> Link Artwork
           </Button>
-        ) : (
-          <Button variant="archive" size="sm" onClick={() => setEditing(true)}>
-            Edit Entry
+          <Button variant="outline" size="sm" onClick={handleAiSummary} disabled={summarizing} className="font-mono text-xs">
+            <Sparkles className="h-3 w-3 mr-1.5" strokeWidth={1.5} /> {summarizing ? "Analyzing…" : "AI Summary"}
           </Button>
-        )}
-        <Button variant="ghost" size="sm" onClick={handleDelete} className="text-destructive hover:text-destructive font-mono text-xs uppercase tracking-widest">
-          <Trash2 className="h-3 w-3 mr-1.5" strokeWidth={1.5} /> Remove
-        </Button>
-      </div>
+          <Button variant="ghost" size="sm" onClick={handleDelete} className="text-destructive hover:text-destructive font-mono text-xs uppercase tracking-widest">
+            <Trash2 className="h-3 w-3 mr-1.5" strokeWidth={1.5} /> Remove
+          </Button>
+        </div>
+      )}
 
       {/* Content */}
       <div className="border border-border p-8">
@@ -89,17 +199,55 @@ export default function CodexDetail() {
       {/* Linked Artworks */}
       {linkedArtworks.length > 0 && (
         <div>
-          <div className="mb-6">
-            <span className="section-label">Linked Specimens — {linkedArtworks.length}</span>
-            <div className="border-t border-border mt-2" />
-          </div>
+          <span className="section-label">Linked Specimens — {linkedArtworks.length}</span>
+          <div className="border-t border-border mt-2 mb-6" />
           <div className="grid grid-cols-2 md:grid-cols-3 gap-px bg-border border border-border">
-            {linkedArtworks.map((art, i) => (
-              <ArtworkCard key={art.id} artwork={art} index={i} />
+            {linkedArtworks.map((art) => (
+              <div key={art.id} className="bg-background group relative">
+                <div className="aspect-square overflow-hidden cursor-pointer" onClick={() => navigate(`/gallery/${art.id}`)}>
+                  <img src={art.image_url} alt={art.title} className="h-full w-full object-cover" loading="lazy" />
+                </div>
+                <div className="p-3 border-t border-border flex items-center justify-between">
+                  <h4 className="font-serif text-xs text-foreground truncate cursor-pointer" onClick={() => navigate(`/gallery/${art.id}`)}>{art.title}</h4>
+                  {isOwner && (
+                    <button onClick={() => removeArtwork(art.id)} className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive">
+                      <X className="h-3 w-3" />
+                    </button>
+                  )}
+                </div>
+              </div>
             ))}
           </div>
         </div>
       )}
+
+      {/* Add artworks dialog */}
+      <Dialog open={addOpen} onOpenChange={setAddOpen}>
+        <DialogContent className="rounded-none border-foreground max-w-2xl max-h-[80vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="font-serif text-xl">Link Artworks</DialogTitle>
+          </DialogHeader>
+          <div className="relative mt-2">
+            <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search artworks…" className="rounded-none pr-8" />
+            <Search className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" strokeWidth={1.5} />
+          </div>
+          <div className="flex-1 overflow-auto mt-4 border border-border divide-y divide-border">
+            {filteredAll.length === 0 ? (
+              <div className="p-8 text-center">
+                <p className="font-mono text-xs text-muted-foreground tracking-wide">No artworks available to link</p>
+              </div>
+            ) : filteredAll.map(art => (
+              <div key={art.id} className="flex items-center gap-4 p-3 hover:bg-secondary transition-colors">
+                <img src={art.image_url} alt="" className="h-12 w-12 object-cover border border-border shrink-0" />
+                <span className="font-serif text-sm text-foreground flex-1 truncate">{art.title}</span>
+                <Button variant="outline" size="sm" className="font-mono text-xs shrink-0" onClick={() => addArtwork(art.id)}>
+                  <Plus className="h-3 w-3 mr-1" /> Link
+                </Button>
+              </div>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
