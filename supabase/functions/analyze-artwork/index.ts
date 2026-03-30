@@ -10,7 +10,61 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { artwork_id, image_url } = await req.json();
+    const body = await req.json();
+    const { mode } = body;
+
+    // ── Codex summary mode ──
+    if (mode === "codex-summary") {
+      const { title, type, content } = body;
+      const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+      if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
+
+      const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash",
+          messages: [
+            { role: "system", content: "You are a creative writing assistant. Generate a concise 2-3 sentence summary of the following codex entry. Focus on the key concepts, relationships, and creative significance. Return ONLY the summary text, no JSON or markdown." },
+            { role: "user", content: `Title: ${title}\nType: ${type}\n\n${content}` },
+          ],
+        }),
+      });
+      if (!aiRes.ok) throw new Error("AI request failed");
+      const aiData = await aiRes.json();
+      const summary = aiData.choices?.[0]?.message?.content?.trim() || "";
+      return new Response(JSON.stringify({ summary }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // ── Story summary mode ──
+    if (mode === "story-summary") {
+      const { title, description, scenes } = body;
+      const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+      if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
+
+      const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash",
+          messages: [
+            { role: "system", content: "You are a narrative analyst. Generate a concise 2-3 sentence summary of this story, capturing its arc, themes, and emotional core. Return ONLY the summary text." },
+            { role: "user", content: `Title: ${title}\nSynopsis: ${description}\n\nScenes:\n${scenes}` },
+          ],
+        }),
+      });
+      if (!aiRes.ok) throw new Error("AI request failed");
+      const aiData = await aiRes.json();
+      const summary = aiData.choices?.[0]?.message?.content?.trim() || "";
+      return new Response(JSON.stringify({ summary }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // ── Artwork analysis mode (default) ──
+    const { artwork_id, image_url } = body;
     if (!artwork_id || !image_url) {
       return new Response(JSON.stringify({ error: "artwork_id and image_url required" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
