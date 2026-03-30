@@ -54,6 +54,7 @@ const App = () => (
               <Route path="/stories/:id" element={<StoryDetail />} />
               <Route path="/timeline" element={<Timeline />} />
               <Route path="/mindmap" element={<Mindmap />} />
+              <Route path="/favorites" element={<Favorites />} />
               <Route path="/exports" element={<Exports />} />
               <Route path="/settings" element={<Settings />} />
             </Route>
