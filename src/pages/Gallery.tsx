@@ -78,6 +78,22 @@ export default function Gallery() {
 
   useEffect(() => { fetchArtworks(); }, []);
 
+  useEffect(() => {
+    if (user) {
+      supabase.from("collections").select("id, name, color").then(({ data }) => setCollections(data || []));
+    }
+  }, [user]);
+
+  const addToCollection = async (artworkId: string, collectionId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const { error } = await supabase.from("collection_artworks").insert({ collection_id: collectionId, artwork_id: artworkId });
+    if (error) {
+      if (error.code === "23505") { toast({ title: "Already in that collection" }); return; }
+      toast({ title: "Error", description: error.message, variant: "destructive" }); return;
+    }
+    toast({ title: "Added to collection" });
+  };
+
   const allTags = useMemo(() => {
     const tagMap = new Map<string, number>();
     artworks.forEach(a => a.tags.forEach(t => tagMap.set(t.tag, (tagMap.get(t.tag) || 0) + 1)));
