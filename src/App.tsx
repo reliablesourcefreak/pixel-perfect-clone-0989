@@ -18,6 +18,7 @@ import StoryDetail from "@/pages/StoryDetail";
 import Timeline from "@/pages/Timeline";
 import Mindmap from "@/pages/Mindmap";
 import Exports from "@/pages/Exports";
+import Favorites from "@/pages/Favorites";
 import Settings from "@/pages/Settings";
 import Auth from "@/pages/Auth";
 import NotFound from "@/pages/NotFound";
@@ -53,6 +54,7 @@ const App = () => (
               <Route path="/stories/:id" element={<StoryDetail />} />
               <Route path="/timeline" element={<Timeline />} />
               <Route path="/mindmap" element={<Mindmap />} />
+              <Route path="/favorites" element={<Favorites />} />
               <Route path="/exports" element={<Exports />} />
               <Route path="/settings" element={<Settings />} />
             </Route>

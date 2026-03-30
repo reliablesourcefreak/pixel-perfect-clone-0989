@@ -155,6 +155,72 @@ export type Database = {
         }
         Relationships: []
       }
+      codex_artwork_links: {
+        Row: {
+          artwork_id: string
+          codex_entry_id: string
+          id: string
+        }
+        Insert: {
+          artwork_id: string
+          codex_entry_id: string
+          id?: string
+        }
+        Update: {
+          artwork_id?: string
+          codex_entry_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "codex_artwork_links_artwork_id_fkey"
+            columns: ["artwork_id"]
+            isOneToOne: false
+            referencedRelation: "artworks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "codex_artwork_links_codex_entry_id_fkey"
+            columns: ["codex_entry_id"]
+            isOneToOne: false
+            referencedRelation: "codex_entries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      codex_entries: {
+        Row: {
+          ai_summary: string | null
+          content: string
+          created_at: string
+          id: string
+          title: string
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ai_summary?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          title: string
+          type?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ai_summary?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          title?: string
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       collection_artworks: {
         Row: {
           added_at: string
@@ -226,6 +292,94 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      stories: {
+        Row: {
+          ai_summary: string | null
+          created_at: string
+          description: string
+          id: string
+          status: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ai_summary?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          status?: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ai_summary?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      story_scenes: {
+        Row: {
+          artwork_id: string | null
+          codex_entry_id: string | null
+          created_at: string
+          description: string
+          id: string
+          scene_number: number
+          story_id: string
+          title: string
+        }
+        Insert: {
+          artwork_id?: string | null
+          codex_entry_id?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          scene_number?: number
+          story_id: string
+          title?: string
+        }
+        Update: {
+          artwork_id?: string | null
+          codex_entry_id?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          scene_number?: number
+          story_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "story_scenes_artwork_id_fkey"
+            columns: ["artwork_id"]
+            isOneToOne: false
+            referencedRelation: "artworks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "story_scenes_codex_entry_id_fkey"
+            columns: ["codex_entry_id"]
+            isOneToOne: false
+            referencedRelation: "codex_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "story_scenes_story_id_fkey"
+            columns: ["story_id"]
+            isOneToOne: false
+            referencedRelation: "stories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

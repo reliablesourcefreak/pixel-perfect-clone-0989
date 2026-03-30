@@ -4,7 +4,11 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Search, RefreshCw } from "lucide-react";
+import { Plus, Search, RefreshCw, FolderPlus } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
+import {
+  Popover, PopoverContent, PopoverTrigger,
+} from "@/components/ui/popover";
 
 interface ArtworkWithTags {
   id: string;
@@ -43,6 +47,7 @@ export default function Gallery() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [collections, setCollections] = useState<{ id: string; name: string; color: string }[]>([]);
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -72,6 +77,22 @@ export default function Gallery() {
   };
 
   useEffect(() => { fetchArtworks(); }, []);
+
+  useEffect(() => {
+    if (user) {
+      supabase.from("collections").select("id, name, color").then(({ data }) => setCollections(data || []));
+    }
+  }, [user]);
+
+  const addToCollection = async (artworkId: string, collectionId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const { error } = await supabase.from("collection_artworks").insert({ collection_id: collectionId, artwork_id: artworkId });
+    if (error) {
+      if (error.code === "23505") { toast({ title: "Already in that collection" }); return; }
+      toast({ title: "Error", description: error.message, variant: "destructive" }); return;
+    }
+    toast({ title: "Added to collection" });
+  };
 
   const allTags = useMemo(() => {
     const tagMap = new Map<string, number>();
@@ -276,8 +297,35 @@ export default function Gallery() {
                       )}
                     </div>
                   </div>
-                  <div className="p-3 border-t border-border">
+                  <div className="p-3 border-t border-border flex items-center justify-between">
                     <h4 className="font-serif text-sm text-foreground truncate">{art.title}</h4>
+                    {user && collections.length > 0 && (
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <button
+                            onClick={(e) => e.stopPropagation()}
+                            className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-foreground"
+                            title="Add to collection"
+                          >
+                            <FolderPlus className="h-3.5 w-3.5" strokeWidth={1.5} />
+                          </button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-48 p-0 rounded-none" align="end">
+                          <div className="divide-y divide-border">
+                            {collections.map(col => (
+                              <button
+                                key={col.id}
+                                onClick={(e) => addToCollection(art.id, col.id, e)}
+                                className="w-full flex items-center gap-2 p-2.5 font-mono text-xs text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+                              >
+                                <span className="h-2 w-2 shrink-0" style={{ backgroundColor: col.color }} />
+                                <span className="truncate">{col.name}</span>
+                              </button>
+                            ))}
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    )}
                   </div>
                 </div>
               ))}
