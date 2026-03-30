@@ -47,6 +47,7 @@ export default function Gallery() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [collections, setCollections] = useState<{ id: string; name: string; color: string }[]>([]);
   const navigate = useNavigate();
   const { user } = useAuth();
 
