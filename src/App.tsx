@@ -18,6 +18,7 @@ import StoryDetail from "@/pages/StoryDetail";
 import Timeline from "@/pages/Timeline";
 import Mindmap from "@/pages/Mindmap";
 import Exports from "@/pages/Exports";
+import Favorites from "@/pages/Favorites";
 import Settings from "@/pages/Settings";
 import Auth from "@/pages/Auth";
 import NotFound from "@/pages/NotFound";
