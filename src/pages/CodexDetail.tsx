@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Trash2, Save, Plus, X, Search, Loader2, Sparkles } from "lucide-react";
+import { Trash2, Save, Plus, X, Search, Loader2, Sparkles, Wand2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
@@ -28,6 +28,13 @@ interface LinkedArtwork {
   image_url: string;
 }
 
+interface AiSuggestion {
+  id: string;
+  title: string;
+  image_url: string;
+  reason: string;
+}
+
 export default function CodexDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -42,6 +49,9 @@ export default function CodexDetail() {
   const [search, setSearch] = useState("");
   const [allArtworks, setAllArtworks] = useState<LinkedArtwork[]>([]);
   const [summarizing, setSummarizing] = useState(false);
+  const [suggesting, setSuggesting] = useState(false);
+  const [suggestions, setSuggestions] = useState<AiSuggestion[]>([]);
+  const [suggestOpen, setSuggestOpen] = useState(false);
 
   const fetchData = async () => {
     if (!id) return;
@@ -82,12 +92,7 @@ export default function CodexDetail() {
     setSummarizing(true);
     try {
       const res = await supabase.functions.invoke("analyze-artwork", {
-        body: {
-          mode: "codex-summary",
-          title: entry.title,
-          type: entry.type,
-          content: entry.content,
-        },
+        body: { mode: "codex-summary", title: entry.title, type: entry.type, content: entry.content },
       });
       const summary = res.data?.summary;
       if (summary) {
@@ -99,6 +104,41 @@ export default function CodexDetail() {
       toast({ title: "Could not generate summary", variant: "destructive" });
     }
     setSummarizing(false);
+  };
+
+  const handleSuggestConnections = async () => {
+    if (!entry || !entry.content.trim()) return;
+    setSuggesting(true);
+    try {
+      const res = await supabase.functions.invoke("analyze-artwork", {
+        body: {
+          mode: "suggest-connections",
+          codex_entry_id: entry.id,
+          title: entry.title,
+          type: entry.type,
+          content: entry.content,
+        },
+      });
+      if (res.error) throw res.error;
+      const sug = res.data?.suggestions || [];
+      setSuggestions(sug);
+      setSuggestOpen(true);
+      if (sug.length === 0) toast({ title: "No related artworks found" });
+    } catch {
+      toast({ title: "Could not generate suggestions", variant: "destructive" });
+    }
+    setSuggesting(false);
+  };
+
+  const acceptSuggestion = async (artworkId: string) => {
+    if (!id) return;
+    if (linkedArtworks.some(a => a.id === artworkId)) { toast({ title: "Already linked" }); return; }
+    const { error } = await supabase.from("codex_artwork_links").insert({ codex_entry_id: id, artwork_id: artworkId });
+    if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
+    const added = suggestions.find(s => s.id === artworkId);
+    if (added) setLinkedArtworks(prev => [...prev, { id: added.id, title: added.title, image_url: added.image_url }]);
+    setSuggestions(prev => prev.filter(s => s.id !== artworkId));
+    toast({ title: "Artwork linked" });
   };
 
   const openAddDialog = async () => {
@@ -176,6 +216,9 @@ export default function CodexDetail() {
           <Button variant="outline" size="sm" onClick={openAddDialog} className="font-mono text-xs">
             <Plus className="h-3 w-3 mr-1.5" strokeWidth={1.5} /> Link Artwork
           </Button>
+          <Button variant="outline" size="sm" onClick={handleSuggestConnections} disabled={suggesting} className="font-mono text-xs">
+            <Wand2 className="h-3 w-3 mr-1.5" strokeWidth={1.5} /> {suggesting ? "Finding…" : "Suggest Connections"}
+          </Button>
           <Button variant="outline" size="sm" onClick={handleAiSummary} disabled={summarizing} className="font-mono text-xs">
             <Sparkles className="h-3 w-3 mr-1.5" strokeWidth={1.5} /> {summarizing ? "Analyzing…" : "AI Summary"}
           </Button>
@@ -241,6 +284,36 @@ export default function CodexDetail() {
                 <img src={art.image_url} alt="" className="h-12 w-12 object-cover border border-border shrink-0" />
                 <span className="font-serif text-sm text-foreground flex-1 truncate">{art.title}</span>
                 <Button variant="outline" size="sm" className="font-mono text-xs shrink-0" onClick={() => addArtwork(art.id)}>
+                  <Plus className="h-3 w-3 mr-1" /> Link
+                </Button>
+              </div>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* AI Suggestions dialog */}
+      <Dialog open={suggestOpen} onOpenChange={setSuggestOpen}>
+        <DialogContent className="rounded-none border-foreground max-w-2xl max-h-[80vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="font-serif text-xl flex items-center gap-2">
+              <Wand2 className="h-4 w-4" /> AI-Suggested Connections
+            </DialogTitle>
+          </DialogHeader>
+          <p className="font-mono text-xs text-muted-foreground">Artworks the AI thinks are thematically related to this entry.</p>
+          <div className="flex-1 overflow-auto mt-4 border border-border divide-y divide-border">
+            {suggestions.length === 0 ? (
+              <div className="p-8 text-center">
+                <p className="font-mono text-xs text-muted-foreground tracking-wide">No suggestions remaining</p>
+              </div>
+            ) : suggestions.map(sug => (
+              <div key={sug.id} className="flex items-start gap-4 p-4 hover:bg-secondary transition-colors">
+                <img src={sug.image_url} alt="" className="h-16 w-16 object-cover border border-border shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <span className="font-serif text-sm text-foreground block truncate">{sug.title}</span>
+                  <p className="font-mono text-[11px] text-muted-foreground mt-1 leading-relaxed">{sug.reason}</p>
+                </div>
+                <Button variant="outline" size="sm" className="font-mono text-xs shrink-0 mt-1" onClick={() => acceptSuggestion(sug.id)}>
                   <Plus className="h-3 w-3 mr-1" /> Link
                 </Button>
               </div>
