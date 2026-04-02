@@ -316,10 +316,42 @@ export default function StoryDetail() {
                         <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-muted-foreground">
                           Scene {scene.scene_number}
                         </span>
-                        <h4 className="font-serif text-base text-foreground mt-1">{scene.title}</h4>
-                        <p className="font-mono text-xs text-muted-foreground mt-2 leading-relaxed">
-                          {scene.description}
-                        </p>
+                        {isOwner ? (
+                          <>
+                            <input
+                              value={scene.title}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setScenes(prev => prev.map(s => s.id === scene.id ? { ...s, title: val } : s));
+                              }}
+                              onBlur={() => {
+                                supabase.from("story_scenes").update({ title: scene.title }).eq("id", scene.id);
+                              }}
+                              className="font-serif text-base text-foreground mt-1 bg-transparent border-0 border-b border-transparent hover:border-border focus:border-foreground outline-none w-full transition-colors px-0 py-0.5"
+                              placeholder="Scene title…"
+                            />
+                            <textarea
+                              value={scene.description}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setScenes(prev => prev.map(s => s.id === scene.id ? { ...s, description: val } : s));
+                              }}
+                              onBlur={() => {
+                                supabase.from("story_scenes").update({ description: scene.description }).eq("id", scene.id);
+                              }}
+                              rows={2}
+                              className="font-mono text-xs text-muted-foreground mt-2 leading-relaxed bg-transparent border-0 border-b border-transparent hover:border-border focus:border-foreground outline-none w-full resize-none transition-colors px-0 py-0.5"
+                              placeholder="Scene description…"
+                            />
+                          </>
+                        ) : (
+                          <>
+                            <h4 className="font-serif text-base text-foreground mt-1">{scene.title}</h4>
+                            <p className="font-mono text-xs text-muted-foreground mt-2 leading-relaxed">
+                              {scene.description}
+                            </p>
+                          </>
+                        )}
                       </div>
                     </div>
                     {isOwner && (
