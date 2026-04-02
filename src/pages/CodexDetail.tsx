@@ -265,6 +265,9 @@ export default function CodexDetail() {
         </div>
       )}
 
+      {/* Relationship Graph */}
+      <RelationshipGraph codexEntryId={id || ""} linkedArtworkIds={linkedArtworks.map(a => a.id)} />
+
       {/* Add artworks dialog */}
       <Dialog open={addOpen} onOpenChange={setAddOpen}>
         <DialogContent className="rounded-none border-foreground max-w-2xl max-h-[80vh] flex flex-col">
