@@ -1,11 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Trash2, Plus, Loader2, Sparkles, Save } from "lucide-react";
+import { Trash2, Plus, Loader2, Sparkles, Save, GripVertical } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -52,6 +52,11 @@ export default function StoryDetail() {
   const [description, setDescription] = useState("");
   const [status, setStatus] = useState("draft");
   const [summarizing, setSummarizing] = useState(false);
+
+  // Drag state
+  const [dragIdx, setDragIdx] = useState<number | null>(null);
+  const [overIdx, setOverIdx] = useState<number | null>(null);
+  const dragNode = useRef<HTMLDivElement | null>(null);
 
   const fetchData = async () => {
     if (!id) return;
@@ -118,12 +123,7 @@ export default function StoryDetail() {
     try {
       const sceneText = scenes.map(s => `Scene ${s.scene_number}: ${s.title} - ${s.description}`).join("\n");
       const res = await supabase.functions.invoke("analyze-artwork", {
-        body: {
-          mode: "story-summary",
-          title: story.title,
-          description: story.description,
-          scenes: sceneText,
-        },
+        body: { mode: "story-summary", title: story.title, description: story.description, scenes: sceneText },
       });
       const summary = res.data?.summary;
       if (summary) {
@@ -136,6 +136,48 @@ export default function StoryDetail() {
     }
     setSummarizing(false);
   };
+
+  // ── Drag and drop handlers ──
+  const handleDragStart = useCallback((idx: number, e: React.DragEvent<HTMLDivElement>) => {
+    setDragIdx(idx);
+    dragNode.current = e.currentTarget;
+    e.dataTransfer.effectAllowed = "move";
+    // Make it semi-transparent
+    requestAnimationFrame(() => {
+      if (dragNode.current) dragNode.current.style.opacity = "0.4";
+    });
+  }, []);
+
+  const handleDragEnd = useCallback(async () => {
+    if (dragNode.current) dragNode.current.style.opacity = "1";
+    if (dragIdx === null || overIdx === null || dragIdx === overIdx) {
+      setDragIdx(null);
+      setOverIdx(null);
+      return;
+    }
+    // Reorder
+    const reordered = [...scenes];
+    const [moved] = reordered.splice(dragIdx, 1);
+    reordered.splice(overIdx, 0, moved);
+    // Assign new scene_numbers
+    const updated = reordered.map((s, i) => ({ ...s, scene_number: i + 1 }));
+    setScenes(updated);
+    setDragIdx(null);
+    setOverIdx(null);
+
+    // Persist to DB
+    const promises = updated.map(s =>
+      supabase.from("story_scenes").update({ scene_number: s.scene_number }).eq("id", s.id)
+    );
+    await Promise.all(promises);
+    toast({ title: "Scenes reordered" });
+  }, [dragIdx, overIdx, scenes]);
+
+  const handleDragOver = useCallback((idx: number, e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    setOverIdx(idx);
+  }, []);
 
   if (loading) return <div className="flex items-center justify-center min-h-[60vh]"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
   if (!story) return <div className="flex items-center justify-center min-h-[60vh]"><p className="font-mono text-xs text-muted-foreground">Narrative not found</p></div>;
@@ -231,7 +273,12 @@ export default function StoryDetail() {
 
       {/* Scene outline */}
       <div>
-        <span className="section-label">Scene Outline</span>
+        <div className="flex items-center justify-between">
+          <span className="section-label">Scene Outline</span>
+          {isOwner && scenes.length > 1 && (
+            <span className="font-mono text-[10px] text-muted-foreground tracking-wide">Drag to reorder</span>
+          )}
+        </div>
         <div className="border-t border-border mt-2 mb-6" />
 
         {scenes.length === 0 ? (
@@ -242,20 +289,38 @@ export default function StoryDetail() {
           </div>
         ) : (
           <div className="border-l border-border ml-3 space-y-0">
-            {scenes.map((scene) => (
-              <div key={scene.id} className="relative pl-8 pb-8 last:pb-0 group">
+            {scenes.map((scene, idx) => (
+              <div
+                key={scene.id}
+                draggable={isOwner}
+                onDragStart={(e) => handleDragStart(idx, e)}
+                onDragEnd={handleDragEnd}
+                onDragOver={(e) => handleDragOver(idx, e)}
+                className={`relative pl-8 pb-8 last:pb-0 group transition-all ${
+                  dragIdx !== null && overIdx === idx && dragIdx !== idx
+                    ? "border-t-2 border-primary"
+                    : ""
+                }`}
+              >
                 <div className="absolute left-0 top-0 -translate-x-[calc(50%+0.5px)] h-2 w-2 border border-foreground bg-background" />
 
                 <div className="border border-border p-5">
                   <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-muted-foreground">
-                        Scene {scene.scene_number}
-                      </span>
-                      <h4 className="font-serif text-base text-foreground mt-1">{scene.title}</h4>
-                      <p className="font-mono text-xs text-muted-foreground mt-2 leading-relaxed">
-                        {scene.description}
-                      </p>
+                    <div className="flex items-start gap-3 flex-1">
+                      {isOwner && (
+                        <div className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground mt-0.5 shrink-0">
+                          <GripVertical className="h-4 w-4" />
+                        </div>
+                      )}
+                      <div className="flex-1">
+                        <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-muted-foreground">
+                          Scene {scene.scene_number}
+                        </span>
+                        <h4 className="font-serif text-base text-foreground mt-1">{scene.title}</h4>
+                        <p className="font-mono text-xs text-muted-foreground mt-2 leading-relaxed">
+                          {scene.description}
+                        </p>
+                      </div>
                     </div>
                     {isOwner && (
                       <button onClick={() => deleteScene(scene.id)} className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive ml-4">

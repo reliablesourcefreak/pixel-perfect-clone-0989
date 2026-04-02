@@ -13,6 +13,84 @@ serve(async (req) => {
     const body = await req.json();
     const { mode } = body;
 
+    // ── Suggest codex connections mode ──
+    if (mode === "suggest-connections") {
+      const { codex_entry_id, title, type, content } = body;
+      const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+      if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
+
+      const supabase = createClient(
+        Deno.env.get("SUPABASE_URL")!,
+        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      );
+
+      // Fetch all artworks with their tags and categories
+      const [{ data: artworks }, { data: tags }, { data: categories }] = await Promise.all([
+        supabase.from("artworks").select("id, title, image_url"),
+        supabase.from("artwork_tags").select("artwork_id, tag"),
+        supabase.from("artwork_categories").select("artwork_id, category"),
+      ]);
+
+      // Fetch already linked artworks
+      const { data: existingLinks } = await supabase
+        .from("codex_artwork_links")
+        .select("artwork_id")
+        .eq("codex_entry_id", codex_entry_id);
+      const linkedIds = new Set((existingLinks || []).map((l: any) => l.artwork_id));
+
+      // Build artwork context for AI
+      const artworkContext = (artworks || [])
+        .filter((a: any) => !linkedIds.has(a.id))
+        .map((a: any) => {
+          const artTags = (tags || []).filter((t: any) => t.artwork_id === a.id).map((t: any) => t.tag);
+          const artCats = (categories || []).filter((c: any) => c.artwork_id === a.id).map((c: any) => c.category);
+          return { id: a.id, title: a.title, tags: artTags, categories: artCats };
+        });
+
+      if (artworkContext.length === 0) {
+        return new Response(JSON.stringify({ suggestions: [] }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash",
+          messages: [
+            { role: "system", content: "You are an art curator and creative analyst. Given a codex entry (character, world-building, concept) and a list of artworks with their tags/categories, select the artworks that are thematically, visually, or narratively related to the codex entry. Only suggest genuinely relevant connections. Return a JSON array of objects with 'id' and 'reason' (one sentence explaining the connection). Return at most 8 suggestions. Return ONLY valid JSON array, no markdown." },
+            { role: "user", content: `Codex Entry:\nTitle: ${title}\nType: ${type}\nContent: ${content}\n\nAvailable Artworks:\n${JSON.stringify(artworkContext)}` },
+          ],
+        }),
+      });
+      if (!aiRes.ok) {
+        const status = aiRes.status;
+        if (status === 429) return new Response(JSON.stringify({ error: "Rate limited" }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        if (status === 402) return new Response(JSON.stringify({ error: "Credits depleted" }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        throw new Error("AI request failed");
+      }
+      const aiData = await aiRes.json();
+      const raw = aiData.choices?.[0]?.message?.content?.trim() || "[]";
+      let suggestions;
+      try {
+        const cleaned = raw.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+        suggestions = JSON.parse(cleaned);
+      } catch {
+        suggestions = [];
+      }
+      // Enrich with artwork info
+      const artMap = new Map((artworks || []).map((a: any) => [a.id, a]));
+      const enriched = suggestions.filter((s: any) => artMap.has(s.id)).map((s: any) => ({
+        ...s,
+        title: artMap.get(s.id).title,
+        image_url: artMap.get(s.id).image_url,
+      }));
+      return new Response(JSON.stringify({ suggestions: enriched }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // ── Codex summary mode ──
     if (mode === "codex-summary") {
       const { title, type, content } = body;
