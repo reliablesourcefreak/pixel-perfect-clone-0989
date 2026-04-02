@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Trash2, Save, Plus, X, Search, Loader2, Sparkles, Wand2 } from "lucide-react";
+import RelationshipGraph from "@/components/orbit/RelationshipGraph";
 import { toast } from "@/hooks/use-toast";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
@@ -263,6 +264,9 @@ export default function CodexDetail() {
           </div>
         </div>
       )}
+
+      {/* Relationship Graph */}
+      <RelationshipGraph codexEntryId={id || ""} linkedArtworkIds={linkedArtworks.map(a => a.id)} />
 
       {/* Add artworks dialog */}
       <Dialog open={addOpen} onOpenChange={setAddOpen}>
