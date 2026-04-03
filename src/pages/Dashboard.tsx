@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Upload, ArrowRight, Layers, Tag, TrendingUp, Zap } from "lucide-react";
+import { DashboardSkeleton } from "@/components/orbit/GallerySkeletons";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 
