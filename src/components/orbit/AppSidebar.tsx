@@ -43,6 +43,7 @@ const mainNav = [
 const viewsNav = [
   { title: "Timeline", url: "/timeline", icon: Clock },
   { title: "Mindmap", url: "/mindmap", icon: Network },
+  { title: "About", url: "/about", icon: Info },
   { title: "Exports", url: "/exports", icon: Download },
   { title: "Settings", url: "/settings", icon: Settings },
 ];

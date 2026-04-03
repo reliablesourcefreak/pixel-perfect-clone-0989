@@ -58,6 +58,7 @@ const App = () => (
               <Route path="/favorites" element={<Favorites />} />
               <Route path="/exports" element={<Exports />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/about" element={<About />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
