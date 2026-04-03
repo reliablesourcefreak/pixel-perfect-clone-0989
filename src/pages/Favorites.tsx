@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Star, Loader2 } from "lucide-react";
+import { Star } from "lucide-react";
+import { FavoritesGridSkeleton } from "@/components/orbit/GallerySkeletons";
 
 interface FavArtwork {
   id: string;
