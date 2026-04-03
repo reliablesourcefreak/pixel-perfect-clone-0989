@@ -154,9 +154,7 @@ export default function Codex() {
       <div className="border-t border-border mb-10" />
 
       {loading ? (
-        <div className="border border-border p-16 text-center">
-          <p className="font-mono text-xs text-muted-foreground tracking-wide animate-pulse">Loading codex…</p>
-        </div>
+        <CodexListSkeleton />
       ) : entries.length === 0 ? (
         <div className="border border-border p-16 text-center space-y-3">
           <BookOpen className="h-8 w-8 text-muted-foreground mx-auto" strokeWidth={1} />

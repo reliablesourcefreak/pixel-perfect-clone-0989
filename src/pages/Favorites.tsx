@@ -41,9 +41,7 @@ export default function Favorites() {
       <div className="border-t border-accent mb-8 border-2" />
 
       {loading ? (
-        <div className="border border-border p-16 text-center">
-          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground mx-auto" />
-        </div>
+        <FavoritesGridSkeleton />
       ) : artworks.length === 0 ? (
         <div className="border border-border p-16 text-center space-y-3">
           <Star className="h-8 w-8 text-muted-foreground mx-auto" strokeWidth={1} />

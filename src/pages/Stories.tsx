@@ -127,9 +127,7 @@ export default function Stories() {
       <div className="border-t border-border mb-8" />
 
       {loading ? (
-        <div className="border border-border p-16 text-center">
-          <p className="font-mono text-xs text-muted-foreground tracking-wide animate-pulse">Loading narratives…</p>
-        </div>
+        <StoriesListSkeleton />
       ) : stories.length === 0 ? (
         <div className="border border-border p-16 text-center space-y-3">
           <BookText className="h-8 w-8 text-muted-foreground mx-auto" strokeWidth={1} />

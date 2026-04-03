@@ -55,13 +55,7 @@ export default function Dashboard() {
   const latestWork = artworks[0];
   const maxCatCount = categories[0]?.count || 1;
 
-  if (loading) {
-    return (
-      <div className="px-8 py-10 max-w-7xl mx-auto h-screen flex items-center justify-center">
-        <p className="font-mono text-xs text-muted-foreground tracking-wide animate-pulse">Loading archive…</p>
-      </div>
-    );
-  }
+  if (loading) return <DashboardSkeleton />;
 
   return (
     <div className="px-8 py-10 max-w-7xl mx-auto">
