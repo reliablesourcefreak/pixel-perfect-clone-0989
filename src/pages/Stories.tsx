@@ -11,6 +11,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
+import { StoriesListSkeleton } from "@/components/orbit/GallerySkeletons";
 
 const statusLabel: Record<string, string> = {
   draft: "DRAFT",
