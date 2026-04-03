@@ -22,6 +22,7 @@ import Favorites from "@/pages/Favorites";
 import Settings from "@/pages/Settings";
 import Auth from "@/pages/Auth";
 import NotFound from "@/pages/NotFound";
+import About from "@/pages/About";
 
 const queryClient = new QueryClient();
 
