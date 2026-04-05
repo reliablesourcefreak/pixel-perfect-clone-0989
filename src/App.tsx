@@ -23,6 +23,7 @@ import Settings from "@/pages/Settings";
 import Auth from "@/pages/Auth";
 import NotFound from "@/pages/NotFound";
 import About from "@/pages/About";
+import SharedCollection from "@/pages/SharedCollection";
 
 const queryClient = new QueryClient();
 
@@ -60,6 +61,7 @@ const App = () => (
               <Route path="/settings" element={<Settings />} />
               <Route path="/about" element={<About />} />
             </Route>
+            <Route path="/share/collection/:id" element={<SharedCollection />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
