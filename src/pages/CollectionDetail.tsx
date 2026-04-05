@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Pin, Trash2, Plus, X, Loader2, Search } from "lucide-react";
+import { Pin, Trash2, Plus, X, Loader2, Search, Share2, Copy } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
