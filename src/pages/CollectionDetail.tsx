@@ -120,19 +120,33 @@ export default function CollectionDetail() {
       </div>
 
       {/* Actions */}
-      {isOwner && (
-        <div className="flex gap-3">
-          <Button variant="archive" size="sm" onClick={openAddDialog}>
-            <Plus className="h-3 w-3 mr-1.5" strokeWidth={1.5} /> Add Artworks
-          </Button>
-          <Button variant="outline" size="sm" onClick={togglePin} className="font-mono text-xs">
-            <Pin className="h-3 w-3 mr-1.5" strokeWidth={1.5} /> {collection.is_pinned ? "Unpin" : "Pin"}
-          </Button>
-          <Button variant="ghost" size="sm" onClick={handleDelete} className="text-destructive hover:text-destructive font-mono text-xs uppercase tracking-widest">
-            <Trash2 className="h-3 w-3 mr-1.5" strokeWidth={1.5} /> Delete
-          </Button>
-        </div>
-      )}
+      <div className="flex gap-3 flex-wrap">
+        <Button
+          variant="outline"
+          size="sm"
+          className="font-mono text-xs"
+          onClick={() => {
+            const shareUrl = `${window.location.origin}/share/collection/${collection.id}`;
+            navigator.clipboard.writeText(shareUrl);
+            toast({ title: "Share link copied", description: "Anyone with this link can view the collection." });
+          }}
+        >
+          <Share2 className="h-3 w-3 mr-1.5" strokeWidth={1.5} /> Share
+        </Button>
+        {isOwner && (
+          <>
+            <Button variant="archive" size="sm" onClick={openAddDialog}>
+              <Plus className="h-3 w-3 mr-1.5" strokeWidth={1.5} /> Add Artworks
+            </Button>
+            <Button variant="outline" size="sm" onClick={togglePin} className="font-mono text-xs">
+              <Pin className="h-3 w-3 mr-1.5" strokeWidth={1.5} /> {collection.is_pinned ? "Unpin" : "Pin"}
+            </Button>
+            <Button variant="ghost" size="sm" onClick={handleDelete} className="text-destructive hover:text-destructive font-mono text-xs uppercase tracking-widest">
+              <Trash2 className="h-3 w-3 mr-1.5" strokeWidth={1.5} /> Delete
+            </Button>
+          </>
+        )}
+      </div>
 
       <div className="border-t border-border" style={{ borderColor: collection.color }} />
 
