@@ -77,9 +77,9 @@ export default function Collections() {
     const { error } = await supabase.from("collections").insert({
       user_id: user.id, name: name.trim(), description: description.trim(), color,
     });
-    if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
+    if (error) { toast.error("Error", { description: error.message }); return; }
     setName(""); setDescription(""); setOpen(false);
-    toast({ title: "Collection created" });
+    toast("Collection created");
     fetchCollections();
   };
 

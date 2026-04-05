@@ -101,10 +101,10 @@ export default function Gallery() {
     e.stopPropagation();
     const { error } = await supabase.from("collection_artworks").insert({ collection_id: collectionId, artwork_id: artworkId });
     if (error) {
-      if (error.code === "23505") { toast({ title: "Already in that collection" }); return; }
-      toast({ title: "Error", description: error.message, variant: "destructive" }); return;
+      if (error.code === "23505") { toast("Already in that collection"); return; }
+      toast.error("Error", { description: error.message }); return;
     }
-    toast({ title: "Added to collection" });
+    toast("Added to collection");
   };
 
   const allTags = useMemo(() => {

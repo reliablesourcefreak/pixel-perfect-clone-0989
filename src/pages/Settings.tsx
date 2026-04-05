@@ -92,7 +92,7 @@ export default function Settings() {
                 className="font-mono text-[10px] tracking-wide shrink-0"
                 onClick={() => {
                   navigator.clipboard.writeText(rssUrl);
-                  toast({ title: "Copied", description: "RSS URL copied." });
+                  toast("Copied", { description: "RSS URL copied." });
                 }}
               >
                 Copy

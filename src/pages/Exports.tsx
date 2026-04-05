@@ -54,7 +54,7 @@ export default function Exports() {
       downloadBlob(blob, `art-archive-${Date.now()}.json`);
       toast({ title: "Exported", description: `${artworks.length} artworks exported as JSON.` });
     } catch (err: any) {
-      toast({ title: "Export failed", description: err.message, variant: "destructive" });
+      toast.error("Export failed", { description: err.message });
     }
     setExporting(null);
   };
@@ -83,7 +83,7 @@ export default function Exports() {
       downloadBlob(blob, `art-archive-${Date.now()}.csv`);
       toast({ title: "Exported", description: `${artworks.length} artworks exported as CSV.` });
     } catch (err: any) {
-      toast({ title: "Export failed", description: err.message, variant: "destructive" });
+      toast.error("Export failed", { description: err.message });
     }
     setExporting(null);
   };
@@ -120,7 +120,7 @@ export default function Exports() {
       downloadBlob(blob, `art-archive-${Date.now()}.md`);
       toast({ title: "Exported", description: `${artworks.length} artworks exported as Markdown.` });
     } catch (err: any) {
-      toast({ title: "Export failed", description: err.message, variant: "destructive" });
+      toast.error("Export failed", { description: err.message });
     }
     setExporting(null);
   };
@@ -140,7 +140,7 @@ export default function Exports() {
 
   const copyRss = () => {
     navigator.clipboard.writeText(rssUrl);
-    toast({ title: "Copied", description: "RSS feed URL copied to clipboard." });
+    toast("Copied", { description: "RSS feed URL copied to clipboard." });
   };
 
   const exportOptions = [

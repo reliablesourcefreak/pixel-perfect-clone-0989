@@ -26,13 +26,13 @@ export default function Auth() {
     try {
       if (isSignUp) {
         await signUp(email, password);
-        toast({ title: "Account created", description: "Check your email to verify your account." });
+        toast("Account created", { description: "Check your email to verify your account." });
       } else {
         await signIn(email, password);
         navigate("/");
       }
     } catch (err: any) {
-      toast({ title: "Error", description: err.message, variant: "destructive" });
+      toast.error("Error", { description: err.message });
     } finally {
       setLoading(false);
     }
@@ -45,10 +45,10 @@ export default function Auth() {
         redirect_uri: window.location.origin,
       });
       if (result.error) {
-        toast({ title: "Error", description: String(result.error), variant: "destructive" });
+        toast.error("Error", { description: String(result.error) });
       }
     } catch (err: any) {
-      toast({ title: "Error", description: err.message, variant: "destructive" });
+      toast.error("Error", { description: err.message });
     } finally {
       setGoogleLoading(false);
     }

@@ -28,8 +28,8 @@ export function BulkToolbar({ selectedIds, collections, onClear, onActionComplet
     const inserts = selectedIds.map(id => ({ collection_id: collectionId, artwork_id: id }));
     const { error } = await supabase.from("collection_artworks").insert(inserts);
     if (error) {
-      if (error.code === "23505") { toast({ title: "Some already in collection" }); }
-      else { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
+      if (error.code === "23505") { toast("Some already in collection"); }
+      else { toast.error("Error", { description: error.message }); return; }
     }
     toast({ title: `Added ${count} works to collection` });
     onClear();
@@ -41,7 +41,7 @@ export function BulkToolbar({ selectedIds, collections, onClear, onActionComplet
     const inserts = selectedIds.map(id => ({ artwork_id: id, tag }));
     const { error } = await supabase.from("artwork_tags").insert(inserts);
     if (error && error.code !== "23505") {
-      toast({ title: "Error", description: error.message, variant: "destructive" }); return;
+      toast.error("Error", { description: error.message }); return;
     }
     toast({ title: `Tagged ${count} works with "${tag}"` });
     setTagInput("");
@@ -59,7 +59,7 @@ export function BulkToolbar({ selectedIds, collections, onClear, onActionComplet
       await supabase.from("story_scenes").update({ artwork_id: null }).eq("artwork_id", id);
     }
     const { error } = await supabase.from("artworks").delete().in("id", selectedIds);
-    if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
+    if (error) { toast.error("Error", { description: error.message }); return; }
     toast({ title: `Deleted ${count} works` });
     onClear();
     onActionComplete();

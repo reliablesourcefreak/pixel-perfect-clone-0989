@@ -111,15 +111,15 @@ export default function ArtDetail() {
     const { error } = await supabase.functions.invoke("analyze-artwork", {
       body: { artwork_id: artwork.id, image_url: artwork.image_url },
     });
-    if (error) toast({ title: "Re-analysis failed", description: error.message, variant: "destructive" });
-    else { toast({ title: "Re-analysis complete" }); await fetchArtwork(); }
+    if (error) toast.error("Re-analysis failed", { description: error.message });
+    else { toast("Re-analysis complete"); await fetchArtwork(); }
     setReanalyzing(false);
   };
 
   const handleDelete = async () => {
     if (!artwork || !confirm("Delete this artwork permanently?")) return;
     await supabase.from("artworks").delete().eq("id", artwork.id);
-    toast({ title: "Deleted" });
+    toast("Deleted");
     navigate("/gallery");
   };
 
@@ -128,7 +128,7 @@ export default function ArtDetail() {
     const newVal = !artwork.is_favorited;
     await supabase.from("artworks").update({ is_favorited: newVal } as any).eq("id", artwork.id);
     setArtwork({ ...artwork, is_favorited: newVal });
-    toast({ title: newVal ? "Added to favorites" : "Removed from favorites" });
+    toast(newVal ? "Added to favorites" : "Removed from favorites" );
   };
 
   const saveTitle = async () => {
@@ -136,7 +136,7 @@ export default function ArtDetail() {
     await supabase.from("artworks").update({ title: editTitle }).eq("id", artwork.id);
     setArtwork({ ...artwork, title: editTitle });
     setEditing(false);
-    toast({ title: "Title updated" });
+    toast("Title updated");
   };
 
   const addTag = async () => {
@@ -146,14 +146,14 @@ export default function ArtDetail() {
     await supabase.from("artwork_tags").insert({ artwork_id: artwork.id, tag });
     setArtwork({ ...artwork, tags: [...artwork.tags, tag] });
     setNewTag("");
-    toast({ title: "Tag added" });
+    toast("Tag added");
   };
 
   const removeTag = async (tag: string) => {
     if (!artwork) return;
     await supabase.from("artwork_tags").delete().eq("artwork_id", artwork.id).eq("tag", tag);
     setArtwork({ ...artwork, tags: artwork.tags.filter(t => t !== tag) });
-    toast({ title: "Tag removed" });
+    toast("Tag removed");
   };
 
   if (loading) return <div className="flex items-center justify-center min-h-[60vh]"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
