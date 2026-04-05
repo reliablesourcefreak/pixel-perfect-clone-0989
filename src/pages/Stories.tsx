@@ -10,7 +10,7 @@ import { Plus, BookText } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { StoriesListSkeleton } from "@/components/orbit/GallerySkeletons";
 
 const statusLabel: Record<string, string> = {

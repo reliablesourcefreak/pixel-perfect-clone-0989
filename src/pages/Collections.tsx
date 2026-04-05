@@ -10,7 +10,7 @@ import { Plus, Pin, FolderOpen } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 const PALETTE = [
   "hsl(210, 80%, 55%)", "hsl(280, 65%, 55%)", "hsl(35, 85%, 55%)",

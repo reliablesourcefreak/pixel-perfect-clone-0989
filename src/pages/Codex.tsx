@@ -13,7 +13,7 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { CodexListSkeleton } from "@/components/orbit/GallerySkeletons";
 
 const typeLabels: Record<string, string> = {
