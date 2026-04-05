@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { Download, FileJson, FileText, Image, Rss, Loader2 } from "lucide-react";
 
 interface ExportArtwork {
@@ -52,9 +52,9 @@ export default function Exports() {
 
       const blob = new Blob([JSON.stringify(fullExport, null, 2)], { type: "application/json" });
       downloadBlob(blob, `art-archive-${Date.now()}.json`);
-      toast({ title: "Exported", description: `${artworks.length} artworks exported as JSON.` });
+      toast("Exported", { description: `${artworks.length} artworks exported as JSON.` });
     } catch (err: any) {
-      toast({ title: "Export failed", description: err.message, variant: "destructive" });
+      toast.error("Export failed", { description: err.message });
     }
     setExporting(null);
   };
@@ -81,9 +81,9 @@ export default function Exports() {
       const csv = ["id,title,image_url,status,created_at,width,height,file_size,categories,tags", ...rows].join("\n");
       const blob = new Blob([csv], { type: "text/csv" });
       downloadBlob(blob, `art-archive-${Date.now()}.csv`);
-      toast({ title: "Exported", description: `${artworks.length} artworks exported as CSV.` });
+      toast("Exported", { description: `${artworks.length} artworks exported as CSV.` });
     } catch (err: any) {
-      toast({ title: "Export failed", description: err.message, variant: "destructive" });
+      toast.error("Export failed", { description: err.message });
     }
     setExporting(null);
   };
@@ -118,9 +118,9 @@ export default function Exports() {
 
       const blob = new Blob([md], { type: "text/markdown" });
       downloadBlob(blob, `art-archive-${Date.now()}.md`);
-      toast({ title: "Exported", description: `${artworks.length} artworks exported as Markdown.` });
+      toast("Exported", { description: `${artworks.length} artworks exported as Markdown.` });
     } catch (err: any) {
-      toast({ title: "Export failed", description: err.message, variant: "destructive" });
+      toast.error("Export failed", { description: err.message });
     }
     setExporting(null);
   };
@@ -140,7 +140,7 @@ export default function Exports() {
 
   const copyRss = () => {
     navigator.clipboard.writeText(rssUrl);
-    toast({ title: "Copied", description: "RSS feed URL copied to clipboard." });
+    toast("Copied", { description: "RSS feed URL copied to clipboard." });
   };
 
   const exportOptions = [

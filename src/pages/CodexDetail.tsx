@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Trash2, Save, Plus, X, Search, Loader2, Sparkles, Wand2 } from "lucide-react";
 import RelationshipGraph from "@/components/orbit/RelationshipGraph";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
@@ -78,13 +78,13 @@ export default function CodexDetail() {
     await supabase.from("codex_entries").update({ title, content }).eq("id", entry.id);
     setEntry({ ...entry, title, content });
     setEditing(false);
-    toast({ title: "Entry updated" });
+    toast("Entry updated");
   };
 
   const handleDelete = async () => {
     if (!entry || !confirm("Delete this codex entry?")) return;
     await supabase.from("codex_entries").delete().eq("id", entry.id);
-    toast({ title: "Entry deleted" });
+    toast("Entry deleted");
     navigate("/codex");
   };
 
@@ -99,10 +99,10 @@ export default function CodexDetail() {
       if (summary) {
         await supabase.from("codex_entries").update({ ai_summary: summary }).eq("id", entry.id);
         setEntry({ ...entry, ai_summary: summary });
-        toast({ title: "AI summary generated" });
+        toast("AI summary generated");
       }
     } catch {
-      toast({ title: "Could not generate summary", variant: "destructive" });
+      toast.error("Could not generate summary");
     }
     setSummarizing(false);
   };
@@ -124,22 +124,22 @@ export default function CodexDetail() {
       const sug = res.data?.suggestions || [];
       setSuggestions(sug);
       setSuggestOpen(true);
-      if (sug.length === 0) toast({ title: "No related artworks found" });
+      if (sug.length === 0) toast("No related artworks found");
     } catch {
-      toast({ title: "Could not generate suggestions", variant: "destructive" });
+      toast.error("Could not generate suggestions");
     }
     setSuggesting(false);
   };
 
   const acceptSuggestion = async (artworkId: string) => {
     if (!id) return;
-    if (linkedArtworks.some(a => a.id === artworkId)) { toast({ title: "Already linked" }); return; }
+    if (linkedArtworks.some(a => a.id === artworkId)) { toast("Already linked"); return; }
     const { error } = await supabase.from("codex_artwork_links").insert({ codex_entry_id: id, artwork_id: artworkId });
-    if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
+    if (error) { toast.error("Error", { description: error.message }); return; }
     const added = suggestions.find(s => s.id === artworkId);
     if (added) setLinkedArtworks(prev => [...prev, { id: added.id, title: added.title, image_url: added.image_url }]);
     setSuggestions(prev => prev.filter(s => s.id !== artworkId));
-    toast({ title: "Artwork linked" });
+    toast("Artwork linked");
   };
 
   const openAddDialog = async () => {
@@ -150,19 +150,19 @@ export default function CodexDetail() {
 
   const addArtwork = async (artworkId: string) => {
     if (!id) return;
-    if (linkedArtworks.some(a => a.id === artworkId)) { toast({ title: "Already linked" }); return; }
+    if (linkedArtworks.some(a => a.id === artworkId)) { toast("Already linked"); return; }
     const { error } = await supabase.from("codex_artwork_links").insert({ codex_entry_id: id, artwork_id: artworkId });
-    if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
+    if (error) { toast.error("Error", { description: error.message }); return; }
     const added = allArtworks.find(a => a.id === artworkId);
     if (added) setLinkedArtworks(prev => [...prev, added]);
-    toast({ title: "Artwork linked" });
+    toast("Artwork linked");
   };
 
   const removeArtwork = async (artworkId: string) => {
     if (!id) return;
     await supabase.from("codex_artwork_links").delete().eq("codex_entry_id", id).eq("artwork_id", artworkId);
     setLinkedArtworks(prev => prev.filter(a => a.id !== artworkId));
-    toast({ title: "Artwork unlinked" });
+    toast("Artwork unlinked");
   };
 
   const linkedIds = new Set(linkedArtworks.map(a => a.id));

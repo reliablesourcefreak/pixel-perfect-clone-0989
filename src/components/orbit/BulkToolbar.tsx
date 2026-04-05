@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { X, FolderPlus, Tag, Trash2 } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import {
   Popover, PopoverContent, PopoverTrigger,
 } from "@/components/ui/popover";
@@ -28,10 +28,10 @@ export function BulkToolbar({ selectedIds, collections, onClear, onActionComplet
     const inserts = selectedIds.map(id => ({ collection_id: collectionId, artwork_id: id }));
     const { error } = await supabase.from("collection_artworks").insert(inserts);
     if (error) {
-      if (error.code === "23505") { toast({ title: "Some already in collection" }); }
-      else { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
+      if (error.code === "23505") { toast("Some already in collection"); }
+      else { toast.error("Error", { description: error.message }); return; }
     }
-    toast({ title: `Added ${count} works to collection` });
+    toast(`Added ${count} works to collection`);
     onClear();
   };
 
@@ -41,9 +41,9 @@ export function BulkToolbar({ selectedIds, collections, onClear, onActionComplet
     const inserts = selectedIds.map(id => ({ artwork_id: id, tag }));
     const { error } = await supabase.from("artwork_tags").insert(inserts);
     if (error && error.code !== "23505") {
-      toast({ title: "Error", description: error.message, variant: "destructive" }); return;
+      toast.error("Error", { description: error.message }); return;
     }
-    toast({ title: `Tagged ${count} works with "${tag}"` });
+    toast(`Tagged ${count} works with "${tag}"`);
     setTagInput("");
     onClear();
     onActionComplete();
@@ -59,8 +59,8 @@ export function BulkToolbar({ selectedIds, collections, onClear, onActionComplet
       await supabase.from("story_scenes").update({ artwork_id: null }).eq("artwork_id", id);
     }
     const { error } = await supabase.from("artworks").delete().in("id", selectedIds);
-    if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
-    toast({ title: `Deleted ${count} works` });
+    if (error) { toast.error("Error", { description: error.message }); return; }
+    toast(`Deleted ${count} works`);
     onClear();
     onActionComplete();
   };

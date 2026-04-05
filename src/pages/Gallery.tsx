@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Plus, Search, RefreshCw, FolderPlus, CheckSquare } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import {
   Popover, PopoverContent, PopoverTrigger,
 } from "@/components/ui/popover";
@@ -101,10 +101,10 @@ export default function Gallery() {
     e.stopPropagation();
     const { error } = await supabase.from("collection_artworks").insert({ collection_id: collectionId, artwork_id: artworkId });
     if (error) {
-      if (error.code === "23505") { toast({ title: "Already in that collection" }); return; }
-      toast({ title: "Error", description: error.message, variant: "destructive" }); return;
+      if (error.code === "23505") { toast("Already in that collection"); return; }
+      toast.error("Error", { description: error.message }); return;
     }
-    toast({ title: "Added to collection" });
+    toast("Added to collection");
   };
 
   const allTags = useMemo(() => {

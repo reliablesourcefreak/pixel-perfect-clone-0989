@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { Upload, X, Loader2, CheckCircle } from "lucide-react";
 
 interface QueuedFile {
@@ -112,8 +112,7 @@ export default function UploadArtwork() {
 
     setProcessing(false);
     const doneCount = queue.filter((_, i) => queue[i].status !== "error").length;
-    toast({
-      title: "Upload complete",
+    toast("Upload complete", {
       description: `${doneCount} artwork${doneCount !== 1 ? "s" : ""} uploaded and queued for analysis.`,
     });
   };

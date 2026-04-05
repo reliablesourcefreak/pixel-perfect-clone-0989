@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Pin, Trash2, Plus, X, Loader2, Search, Share2, Copy } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
@@ -60,13 +60,13 @@ export default function CollectionDetail() {
     if (!collection) return;
     await supabase.from("collections").update({ is_pinned: !collection.is_pinned }).eq("id", collection.id);
     setCollection({ ...collection, is_pinned: !collection.is_pinned });
-    toast({ title: collection.is_pinned ? "Unpinned" : "Pinned" });
+    toast(collection.is_pinned ? "Unpinned" : "Pinned" );
   };
 
   const handleDelete = async () => {
     if (!collection || !confirm("Delete this collection? Artworks won't be deleted.")) return;
     await supabase.from("collections").delete().eq("id", collection.id);
-    toast({ title: "Collection deleted" });
+    toast("Collection deleted");
     navigate("/collections");
   };
 
@@ -74,7 +74,7 @@ export default function CollectionDetail() {
     if (!id) return;
     await supabase.from("collection_artworks").delete().eq("collection_id", id).eq("artwork_id", artworkId);
     setArtworks(prev => prev.filter(a => a.id !== artworkId));
-    toast({ title: "Removed from collection" });
+    toast("Removed from collection");
   };
 
   const openAddDialog = async () => {
@@ -85,12 +85,12 @@ export default function CollectionDetail() {
 
   const addArtwork = async (artworkId: string) => {
     if (!id) return;
-    if (artworks.some(a => a.id === artworkId)) { toast({ title: "Already in collection" }); return; }
+    if (artworks.some(a => a.id === artworkId)) { toast("Already in collection"); return; }
     const { error } = await supabase.from("collection_artworks").insert({ collection_id: id, artwork_id: artworkId });
-    if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
+    if (error) { toast.error("Error", { description: error.message }); return; }
     const added = allArtworks.find(a => a.id === artworkId);
     if (added) setArtworks(prev => [...prev, added]);
-    toast({ title: "Added to collection" });
+    toast("Added to collection");
   };
 
   const artworkIds = new Set(artworks.map(a => a.id));
@@ -128,7 +128,7 @@ export default function CollectionDetail() {
           onClick={() => {
             const shareUrl = `${window.location.origin}/share/collection/${collection.id}`;
             navigator.clipboard.writeText(shareUrl);
-            toast({ title: "Share link copied", description: "Anyone with this link can view the collection." });
+            toast("Share link copied", { description: "Anyone with this link can view the collection." });
           }}
         >
           <Share2 className="h-3 w-3 mr-1.5" strokeWidth={1.5} /> Share

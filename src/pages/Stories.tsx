@@ -10,7 +10,7 @@ import { Plus, BookText } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { StoriesListSkeleton } from "@/components/orbit/GallerySkeletons";
 
 const statusLabel: Record<string, string> = {
@@ -78,9 +78,9 @@ export default function Stories() {
     const { error } = await supabase.from("stories").insert({
       user_id: user.id, title: title.trim(), description: description.trim(),
     });
-    if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
+    if (error) { toast.error("Error", { description: error.message }); return; }
     setTitle(""); setDescription(""); setOpen(false);
-    toast({ title: "Narrative registered" });
+    toast("Narrative registered");
     fetchStories();
   };
 

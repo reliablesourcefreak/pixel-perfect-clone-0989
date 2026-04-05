@@ -10,7 +10,7 @@ import { Plus, Pin, FolderOpen } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 const PALETTE = [
   "hsl(210, 80%, 55%)", "hsl(280, 65%, 55%)", "hsl(35, 85%, 55%)",
@@ -77,9 +77,9 @@ export default function Collections() {
     const { error } = await supabase.from("collections").insert({
       user_id: user.id, name: name.trim(), description: description.trim(), color,
     });
-    if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
+    if (error) { toast.error("Error", { description: error.message }); return; }
     setName(""); setDescription(""); setOpen(false);
-    toast({ title: "Collection created" });
+    toast("Collection created");
     fetchCollections();
   };
 

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { LogOut, Trash2, Moon, Sun } from "lucide-react";
 
 export default function Settings() {
@@ -32,7 +32,7 @@ export default function Settings() {
   const clearLocalData = () => {
     const keys = Object.keys(localStorage).filter(k => k.startsWith("orbit_"));
     keys.forEach(k => localStorage.removeItem(k));
-    toast({ title: "Cleared", description: `Removed ${keys.length} local data entries.` });
+    toast("Cleared", { description: `Removed ${keys.length} local data entries.` });
   };
 
   const rssUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/rss-feed`;
@@ -92,7 +92,7 @@ export default function Settings() {
                 className="font-mono text-[10px] tracking-wide shrink-0"
                 onClick={() => {
                   navigator.clipboard.writeText(rssUrl);
-                  toast({ title: "Copied", description: "RSS URL copied." });
+                  toast("Copied", { description: "RSS URL copied." });
                 }}
               >
                 Copy

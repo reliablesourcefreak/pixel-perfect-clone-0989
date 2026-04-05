@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Trash2, Plus, Loader2, Sparkles, Save, GripVertical } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -90,13 +90,13 @@ export default function StoryDetail() {
     await supabase.from("stories").update({ title, description, status }).eq("id", story.id);
     setStory({ ...story, title, description, status });
     setEditing(false);
-    toast({ title: "Story updated" });
+    toast("Story updated");
   };
 
   const handleDelete = async () => {
     if (!story || !confirm("Delete this story and all its scenes?")) return;
     await supabase.from("stories").delete().eq("id", story.id);
-    toast({ title: "Story deleted" });
+    toast("Story deleted");
     navigate("/stories");
   };
 
@@ -106,15 +106,15 @@ export default function StoryDetail() {
     const { data, error } = await supabase.from("story_scenes").insert({
       story_id: id, scene_number: nextNum, title: `Scene ${nextNum}`, description: "",
     }).select().single();
-    if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
+    if (error) { toast.error("Error", { description: error.message }); return; }
     if (data) setScenes(prev => [...prev, { ...data, artwork: null, codex: null }]);
-    toast({ title: "Scene added" });
+    toast("Scene added");
   };
 
   const deleteScene = async (sceneId: string) => {
     await supabase.from("story_scenes").delete().eq("id", sceneId);
     setScenes(prev => prev.filter(s => s.id !== sceneId));
-    toast({ title: "Scene removed" });
+    toast("Scene removed");
   };
 
   const handleAiSummary = async () => {
@@ -129,10 +129,10 @@ export default function StoryDetail() {
       if (summary) {
         await supabase.from("stories").update({ ai_summary: summary }).eq("id", story.id);
         setStory({ ...story, ai_summary: summary });
-        toast({ title: "AI summary generated" });
+        toast("AI summary generated");
       }
     } catch {
-      toast({ title: "Could not generate summary", variant: "destructive" });
+      toast.error("Could not generate summary");
     }
     setSummarizing(false);
   };
@@ -170,7 +170,7 @@ export default function StoryDetail() {
       supabase.from("story_scenes").update({ scene_number: s.scene_number }).eq("id", s.id)
     );
     await Promise.all(promises);
-    toast({ title: "Scenes reordered" });
+    toast("Scenes reordered");
   }, [dragIdx, overIdx, scenes]);
 
   const handleDragOver = useCallback((idx: number, e: React.DragEvent) => {

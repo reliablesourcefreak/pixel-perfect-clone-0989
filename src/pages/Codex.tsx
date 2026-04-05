@@ -13,7 +13,7 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { CodexListSkeleton } from "@/components/orbit/GallerySkeletons";
 
 const typeLabels: Record<string, string> = {
@@ -86,9 +86,9 @@ export default function Codex() {
     const { error } = await supabase.from("codex_entries").insert({
       user_id: user.id, title: title.trim(), type, content: content.trim(),
     });
-    if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
+    if (error) { toast.error("Error", { description: error.message }); return; }
     setTitle(""); setContent(""); setType("character"); setOpen(false);
-    toast({ title: "Entry registered" });
+    toast("Entry registered");
     fetchEntries();
   };
 
