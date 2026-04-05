@@ -52,7 +52,7 @@ export default function Exports() {
 
       const blob = new Blob([JSON.stringify(fullExport, null, 2)], { type: "application/json" });
       downloadBlob(blob, `art-archive-${Date.now()}.json`);
-      toast({ title: "Exported", description: `${artworks.length} artworks exported as JSON.` });
+      toast("Exported", { description: `${artworks.length} artworks exported as JSON.` });
     } catch (err: any) {
       toast.error("Export failed", { description: err.message });
     }
@@ -81,7 +81,7 @@ export default function Exports() {
       const csv = ["id,title,image_url,status,created_at,width,height,file_size,categories,tags", ...rows].join("\n");
       const blob = new Blob([csv], { type: "text/csv" });
       downloadBlob(blob, `art-archive-${Date.now()}.csv`);
-      toast({ title: "Exported", description: `${artworks.length} artworks exported as CSV.` });
+      toast("Exported", { description: `${artworks.length} artworks exported as CSV.` });
     } catch (err: any) {
       toast.error("Export failed", { description: err.message });
     }
@@ -118,7 +118,7 @@ export default function Exports() {
 
       const blob = new Blob([md], { type: "text/markdown" });
       downloadBlob(blob, `art-archive-${Date.now()}.md`);
-      toast({ title: "Exported", description: `${artworks.length} artworks exported as Markdown.` });
+      toast("Exported", { description: `${artworks.length} artworks exported as Markdown.` });
     } catch (err: any) {
       toast.error("Export failed", { description: err.message });
     }

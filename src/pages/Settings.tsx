@@ -32,7 +32,7 @@ export default function Settings() {
   const clearLocalData = () => {
     const keys = Object.keys(localStorage).filter(k => k.startsWith("orbit_"));
     keys.forEach(k => localStorage.removeItem(k));
-    toast({ title: "Cleared", description: `Removed ${keys.length} local data entries.` });
+    toast("Cleared", { description: `Removed ${keys.length} local data entries.` });
   };
 
   const rssUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/rss-feed`;

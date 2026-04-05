@@ -31,7 +31,7 @@ export function BulkToolbar({ selectedIds, collections, onClear, onActionComplet
       if (error.code === "23505") { toast("Some already in collection"); }
       else { toast.error("Error", { description: error.message }); return; }
     }
-    toast({ title: `Added ${count} works to collection` });
+    toast(`Added ${count} works to collection`);
     onClear();
   };
 
@@ -43,7 +43,7 @@ export function BulkToolbar({ selectedIds, collections, onClear, onActionComplet
     if (error && error.code !== "23505") {
       toast.error("Error", { description: error.message }); return;
     }
-    toast({ title: `Tagged ${count} works with "${tag}"` });
+    toast(`Tagged ${count} works with "${tag}"`);
     setTagInput("");
     onClear();
     onActionComplete();
@@ -60,7 +60,7 @@ export function BulkToolbar({ selectedIds, collections, onClear, onActionComplet
     }
     const { error } = await supabase.from("artworks").delete().in("id", selectedIds);
     if (error) { toast.error("Error", { description: error.message }); return; }
-    toast({ title: `Deleted ${count} works` });
+    toast(`Deleted ${count} works`);
     onClear();
     onActionComplete();
   };
