@@ -112,8 +112,7 @@ export default function UploadArtwork() {
 
     setProcessing(false);
     const doneCount = queue.filter((_, i) => queue[i].status !== "error").length;
-    toast({
-      title: "Upload complete",
+    toast("Upload complete", {
       description: `${doneCount} artwork${doneCount !== 1 ? "s" : ""} uploaded and queued for analysis.`,
     });
   };
