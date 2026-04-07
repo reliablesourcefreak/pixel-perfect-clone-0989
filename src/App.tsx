@@ -35,35 +35,43 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+const SuspenseFallback = () => (
+  <div className="flex-1 flex items-center justify-center min-h-[50vh]">
+    <div className="h-6 w-6 border-2 border-foreground border-t-transparent rounded-full animate-spin" />
+  </div>
+);
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <AuthProvider>
         <Toaster />
         <BrowserRouter>
-          <Routes>
-            <Route path="/auth" element={<Auth />} />
-            <Route element={<Layout />}>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/gallery" element={<Gallery />} />
-              <Route path="/gallery/:id" element={<ArtDetail />} />
-              <Route path="/upload" element={<ProtectedRoute><UploadArtwork /></ProtectedRoute>} />
-              <Route path="/collections" element={<Collections />} />
-              <Route path="/collections/:id" element={<CollectionDetail />} />
-              <Route path="/codex" element={<Codex />} />
-              <Route path="/codex/:id" element={<CodexDetail />} />
-              <Route path="/stories" element={<Stories />} />
-              <Route path="/stories/:id" element={<StoryDetail />} />
-              <Route path="/timeline" element={<Timeline />} />
-              <Route path="/mindmap" element={<Mindmap />} />
-              <Route path="/favorites" element={<Favorites />} />
-              <Route path="/exports" element={<Exports />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/about" element={<About />} />
-            </Route>
-            <Route path="/share/collection/:id" element={<SharedCollection />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <Suspense fallback={<SuspenseFallback />}>
+            <Routes>
+              <Route path="/auth" element={<Auth />} />
+              <Route element={<Layout />}>
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/gallery" element={<Gallery />} />
+                <Route path="/gallery/:id" element={<ArtDetail />} />
+                <Route path="/upload" element={<ProtectedRoute><UploadArtwork /></ProtectedRoute>} />
+                <Route path="/collections" element={<Collections />} />
+                <Route path="/collections/:id" element={<CollectionDetail />} />
+                <Route path="/codex" element={<Codex />} />
+                <Route path="/codex/:id" element={<CodexDetail />} />
+                <Route path="/stories" element={<Stories />} />
+                <Route path="/stories/:id" element={<StoryDetail />} />
+                <Route path="/timeline" element={<Timeline />} />
+                <Route path="/mindmap" element={<Mindmap />} />
+                <Route path="/favorites" element={<Favorites />} />
+                <Route path="/exports" element={<Exports />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/about" element={<About />} />
+              </Route>
+              <Route path="/share/collection/:id" element={<SharedCollection />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Suspense>
         </BrowserRouter>
       </AuthProvider>
     </TooltipProvider>
