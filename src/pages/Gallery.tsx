@@ -5,13 +5,14 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Search, RefreshCw, FolderPlus, CheckSquare } from "lucide-react";
+import { Plus, Search, RefreshCw, FolderPlus, CheckSquare, SlidersHorizontal, X, Calendar } from "lucide-react";
 import { toast } from "sonner";
 import {
   Popover, PopoverContent, PopoverTrigger,
 } from "@/components/ui/popover";
 import { GalleryGridSkeleton } from "@/components/orbit/GallerySkeletons";
 import { BulkToolbar } from "@/components/orbit/BulkToolbar";
+import { format, subDays, subMonths, isAfter, parseISO } from "date-fns";
 
 interface ArtworkWithTags {
   id: string;
@@ -21,6 +22,8 @@ interface ArtworkWithTags {
   created_at: string;
   categories: { category: string; confidence: number }[];
   tags: { tag: string }[];
+  moods: string[];
+  styles: string[];
 }
 
 const CATEGORIES = [
@@ -44,12 +47,31 @@ const CATEGORY_COLORS: Record<string, string> = {
   "Photography Style": "hsl(80, 50%, 45%)",
 };
 
+const DATE_RANGES = [
+  { label: "All Time", value: "all" },
+  { label: "Last 7 Days", value: "7d" },
+  { label: "Last 30 Days", value: "30d" },
+  { label: "Last 3 Months", value: "3m" },
+  { label: "Last Year", value: "1y" },
+];
+
+const ANALYSIS_STATUSES = [
+  { label: "All", value: "all" },
+  { label: "Analyzed", value: "complete" },
+  { label: "Pending", value: "pending" },
+];
+
 export default function Gallery() {
   const [artworks, setArtworks] = useState<ArtworkWithTags[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [selectedMoods, setSelectedMoods] = useState<string[]>([]);
+  const [selectedStyles, setSelectedStyles] = useState<string[]>([]);
+  const [dateRange, setDateRange] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const [collections, setCollections] = useState<{ id: string; name: string; color: string }[]>([]);
   const [selectMode, setSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -66,16 +88,24 @@ export default function Gallery() {
     if (!arts) { setLoading(false); return; }
 
     const ids = arts.map(a => a.id);
-    const [{ data: cats }, { data: tags }] = await Promise.all([
+    const [{ data: cats }, { data: tags }, { data: analysis }] = await Promise.all([
       supabase.from("artwork_categories").select("artwork_id, category, confidence").in("artwork_id", ids),
       supabase.from("artwork_tags").select("artwork_id, tag").in("artwork_id", ids),
+      supabase.from("artwork_analysis").select("artwork_id, moods, styles").in("artwork_id", ids),
     ]);
 
-    const enriched: ArtworkWithTags[] = arts.map(a => ({
-      ...a,
-      categories: (cats || []).filter(c => c.artwork_id === a.id).map(c => ({ category: c.category, confidence: Number(c.confidence) })),
-      tags: (tags || []).filter(t => t.artwork_id === a.id).map(t => ({ tag: t.tag })),
-    }));
+    const analysisMap = new Map((analysis || []).map(a => [a.artwork_id, a]));
+
+    const enriched: ArtworkWithTags[] = arts.map(a => {
+      const an = analysisMap.get(a.id);
+      return {
+        ...a,
+        categories: (cats || []).filter(c => c.artwork_id === a.id).map(c => ({ category: c.category, confidence: Number(c.confidence) })),
+        tags: (tags || []).filter(t => t.artwork_id === a.id).map(t => ({ tag: t.tag })),
+        moods: (an?.moods as string[]) || [],
+        styles: (an?.styles as string[]) || [],
+      };
+    });
 
     setArtworks(enriched);
     setLoading(false);
@@ -113,11 +143,39 @@ export default function Gallery() {
     return Array.from(tagMap.entries()).sort((a, b) => b[1] - a[1]);
   }, [artworks]);
 
+  const allMoods = useMemo(() => {
+    const map = new Map<string, number>();
+    artworks.forEach(a => a.moods.forEach(m => map.set(m, (map.get(m) || 0) + 1)));
+    return Array.from(map.entries()).sort((a, b) => b[1] - a[1]);
+  }, [artworks]);
+
+  const allStyles = useMemo(() => {
+    const map = new Map<string, number>();
+    artworks.forEach(a => a.styles.forEach(s => map.set(s, (map.get(s) || 0) + 1)));
+    return Array.from(map.entries()).sort((a, b) => b[1] - a[1]);
+  }, [artworks]);
+
   const categoryCounts = useMemo(() => {
     const counts = new Map<string, number>();
     artworks.forEach(a => a.categories.forEach(c => counts.set(c.category, (counts.get(c.category) || 0) + 1)));
     return counts;
   }, [artworks]);
+
+  const activeFilterCount = useMemo(() => {
+    let count = 0;
+    if (selectedMoods.length) count++;
+    if (selectedStyles.length) count++;
+    if (dateRange !== "all") count++;
+    if (statusFilter !== "all") count++;
+    return count;
+  }, [selectedMoods, selectedStyles, dateRange, statusFilter]);
+
+  const clearAdvancedFilters = () => {
+    setSelectedMoods([]);
+    setSelectedStyles([]);
+    setDateRange("all");
+    setStatusFilter("all");
+  };
 
   const filtered = useMemo(() => {
     let result = artworks;
@@ -125,7 +183,9 @@ export default function Gallery() {
       const q = searchQuery.toLowerCase();
       result = result.filter(a =>
         a.title.toLowerCase().includes(q) ||
-        a.tags.some(t => t.tag.includes(q))
+        a.tags.some(t => t.tag.includes(q)) ||
+        a.moods.some(m => m.toLowerCase().includes(q)) ||
+        a.styles.some(s => s.toLowerCase().includes(q))
       );
     }
     if (selectedCategory) {
@@ -134,8 +194,33 @@ export default function Gallery() {
     if (selectedTag) {
       result = result.filter(a => a.tags.some(t => t.tag === selectedTag));
     }
+    if (selectedMoods.length) {
+      result = result.filter(a => selectedMoods.some(m => a.moods.includes(m)));
+    }
+    if (selectedStyles.length) {
+      result = result.filter(a => selectedStyles.some(s => a.styles.includes(s)));
+    }
+    if (dateRange !== "all") {
+      const now = new Date();
+      const cutoff = dateRange === "7d" ? subDays(now, 7)
+        : dateRange === "30d" ? subDays(now, 30)
+        : dateRange === "3m" ? subMonths(now, 3)
+        : subMonths(now, 12);
+      result = result.filter(a => isAfter(parseISO(a.created_at), cutoff));
+    }
+    if (statusFilter !== "all") {
+      result = result.filter(a => a.analysis_status === statusFilter);
+    }
     return result;
-  }, [artworks, searchQuery, selectedCategory, selectedTag]);
+  }, [artworks, searchQuery, selectedCategory, selectedTag, selectedMoods, selectedStyles, dateRange, statusFilter]);
+
+  const toggleMood = (mood: string) => {
+    setSelectedMoods(prev => prev.includes(mood) ? prev.filter(m => m !== mood) : [...prev, mood]);
+  };
+
+  const toggleStyle = (style: string) => {
+    setSelectedStyles(prev => prev.includes(style) ? prev.filter(s => s !== style) : [...prev, style]);
+  };
 
   return (
     <div className="px-8 py-10 max-w-7xl mx-auto">
@@ -188,11 +273,127 @@ export default function Gallery() {
               <Input
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Title, description..."
+                placeholder="Title, tag, mood, style..."
                 className="rounded-none pr-8"
               />
               <Search className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" strokeWidth={1.5} />
             </div>
+          </div>
+
+          {/* Advanced Filters Toggle */}
+          <div>
+            <button
+              onClick={() => setShowAdvanced(!showAdvanced)}
+              className="flex items-center gap-2 w-full justify-between group"
+            >
+              <div className="flex items-center gap-2">
+                <SlidersHorizontal className="h-3.5 w-3.5 text-accent" strokeWidth={1.5} />
+                <span className="section-label">Advanced Filters</span>
+              </div>
+              <div className="flex items-center gap-2">
+                {activeFilterCount > 0 && (
+                  <span className="font-mono text-[9px] bg-accent text-primary-foreground px-1.5 py-0.5">{activeFilterCount}</span>
+                )}
+                <span className="font-mono text-[10px] text-muted-foreground">{showAdvanced ? "−" : "+"}</span>
+              </div>
+            </button>
+
+            {showAdvanced && (
+              <div className="mt-3 space-y-5 border border-border p-4">
+                {/* Clear all */}
+                {activeFilterCount > 0 && (
+                  <button onClick={clearAdvancedFilters} className="font-mono text-[10px] text-muted-foreground hover:text-foreground flex items-center gap-1 tracking-wide">
+                    <X className="h-3 w-3" strokeWidth={1.5} /> Clear filters
+                  </button>
+                )}
+
+                {/* Date Range */}
+                <div>
+                  <span className="font-mono text-[10px] text-muted-foreground tracking-widest uppercase flex items-center gap-1.5 mb-2">
+                    <Calendar className="h-3 w-3" strokeWidth={1.5} /> Date Range
+                  </span>
+                  <div className="flex flex-wrap gap-1">
+                    {DATE_RANGES.map(d => (
+                      <button
+                        key={d.value}
+                        onClick={() => setDateRange(d.value)}
+                        className={`font-mono text-[10px] tracking-wide px-2 py-1 border transition-colors ${
+                          dateRange === d.value
+                            ? "bg-foreground text-primary-foreground border-foreground"
+                            : "text-muted-foreground border-border hover:border-foreground hover:text-foreground"
+                        }`}
+                      >
+                        {d.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Analysis Status */}
+                <div>
+                  <span className="font-mono text-[10px] text-muted-foreground tracking-widest uppercase mb-2 block">Status</span>
+                  <div className="flex gap-1">
+                    {ANALYSIS_STATUSES.map(s => (
+                      <button
+                        key={s.value}
+                        onClick={() => setStatusFilter(s.value)}
+                        className={`font-mono text-[10px] tracking-wide px-2 py-1 border transition-colors ${
+                          statusFilter === s.value
+                            ? "bg-foreground text-primary-foreground border-foreground"
+                            : "text-muted-foreground border-border hover:border-foreground hover:text-foreground"
+                        }`}
+                      >
+                        {s.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Moods */}
+                {allMoods.length > 0 && (
+                  <div>
+                    <span className="font-mono text-[10px] text-muted-foreground tracking-widest uppercase mb-2 block">Moods</span>
+                    <div className="flex flex-wrap gap-1">
+                      {allMoods.slice(0, 15).map(([mood, count]) => (
+                        <button
+                          key={mood}
+                          onClick={() => toggleMood(mood)}
+                          className={`font-mono text-[10px] tracking-wide px-2 py-1 border transition-colors ${
+                            selectedMoods.includes(mood)
+                              ? "bg-foreground text-primary-foreground border-foreground"
+                              : "text-muted-foreground border-border hover:border-foreground hover:text-foreground"
+                          }`}
+                        >
+                          {mood} <span className="opacity-60">{count}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Styles */}
+                {allStyles.length > 0 && (
+                  <div>
+                    <span className="font-mono text-[10px] text-muted-foreground tracking-widest uppercase mb-2 block">Styles</span>
+                    <div className="flex flex-wrap gap-1">
+                      {allStyles.slice(0, 15).map(([style, count]) => (
+                        <button
+                          key={style}
+                          onClick={() => toggleStyle(style)}
+                          className={`font-mono text-[10px] tracking-wide px-2 py-1 border transition-colors ${
+                            selectedStyles.includes(style)
+                              ? "bg-foreground text-primary-foreground border-foreground"
+                              : "text-muted-foreground border-border hover:border-foreground hover:text-foreground"
+                          }`}
+                        >
+                          {style} <span className="opacity-60">{count}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           <div>
@@ -257,6 +458,7 @@ export default function Gallery() {
               <span className="font-mono text-xs text-foreground tracking-wide font-medium">All Works</span>
               <p className="font-mono text-xs text-muted-foreground tracking-wide">
                 {filtered.length} artwork{filtered.length !== 1 ? "s" : ""}
+                {activeFilterCount > 0 && ` (${activeFilterCount} filter${activeFilterCount > 1 ? "s" : ""} active)`}
               </p>
             </div>
             <div className="flex items-center gap-3">
@@ -297,7 +499,6 @@ export default function Gallery() {
                     onClick={() => selectMode ? toggleSelect(art.id) : navigate(`/gallery/${art.id}`)}
                     className={`group cursor-pointer bg-background relative ${isSelected ? "ring-2 ring-inset ring-accent" : ""}`}
                   >
-                    {/* Checkbox overlay in select mode */}
                     {selectMode && (
                       <div className="absolute top-3 left-3 z-10" onClick={(e) => e.stopPropagation()}>
                         <Checkbox

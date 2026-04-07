@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Upload, ArrowRight, Layers, Tag, TrendingUp, Zap } from "lucide-react";
 import { DashboardSkeleton } from "@/components/orbit/GallerySkeletons";
+import { DashboardCharts } from "@/components/orbit/DashboardCharts";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 
@@ -23,17 +24,31 @@ export default function Dashboard() {
   const [totalCount, setTotalCount] = useState(0);
   const [categories, setCategories] = useState<CategoryStat[]>([]);
   const [tags, setTags] = useState<TagStat[]>([]);
+  const [moods, setMoods] = useState<string[]>([]);
+  const [styles, setStyles] = useState<string[]>([]);
+  const [collectionSizes, setCollectionSizes] = useState<{ name: string; count: number; color: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { user } = useAuth();
 
   useEffect(() => {
     const load = async () => {
-      const [{ count }, { data: recent }, { data: cats }, { data: allTags }] = await Promise.all([
+      const [
+        { count },
+        { data: recent },
+        { data: cats },
+        { data: allTags },
+        { data: analysisData },
+        { data: collectionsData },
+        { data: colArtworks },
+      ] = await Promise.all([
         supabase.from("artworks").select("*", { count: "exact", head: true }),
         supabase.from("artworks").select("id, title, image_url, analysis_status, created_at").order("created_at", { ascending: false }).limit(8),
         supabase.from("artwork_categories").select("category"),
         supabase.from("artwork_tags").select("tag"),
+        supabase.from("artwork_analysis").select("moods, styles"),
+        supabase.from("collections").select("id, name, color"),
+        supabase.from("collection_artworks").select("collection_id"),
       ]);
       setTotalCount(count || 0);
       setArtworks(recent || []);
@@ -46,6 +61,25 @@ export default function Dashboard() {
       (allTags || []).forEach((t: any) => tagMap.set(t.tag, (tagMap.get(t.tag) || 0) + 1));
       setTags(Array.from(tagMap.entries()).map(([tag, count]) => ({ tag, count })).sort((a, b) => b.count - a.count).slice(0, 30));
 
+      // Flatten moods and styles
+      const allMoods: string[] = [];
+      const allStyles: string[] = [];
+      (analysisData || []).forEach((a: any) => {
+        if (a.moods) allMoods.push(...a.moods);
+        if (a.styles) allStyles.push(...a.styles);
+      });
+      setMoods(allMoods);
+      setStyles(allStyles);
+
+      // Collection sizes
+      const colCountMap = new Map<string, number>();
+      (colArtworks || []).forEach((ca: any) => colCountMap.set(ca.collection_id, (colCountMap.get(ca.collection_id) || 0) + 1));
+      setCollectionSizes(
+        (collectionsData || [])
+          .map(c => ({ name: c.name, count: colCountMap.get(c.id) || 0, color: c.color }))
+          .sort((a, b) => b.count - a.count)
+      );
+
       setLoading(false);
     };
     load();
@@ -54,6 +88,12 @@ export default function Dashboard() {
   const analyzedCount = useMemo(() => artworks.filter(a => a.analysis_status === "complete").length, [artworks]);
   const latestWork = artworks[0];
   const maxCatCount = categories[0]?.count || 1;
+
+  // For charts: need all artworks with created_at
+  const [allArtworkDates, setAllArtworkDates] = useState<{ created_at: string }[]>([]);
+  useEffect(() => {
+    supabase.from("artworks").select("created_at").then(({ data }) => setAllArtworkDates(data || []));
+  }, []);
 
   if (loading) return <DashboardSkeleton />;
 
@@ -183,6 +223,14 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+
+      {/* Analytics Charts */}
+      <DashboardCharts
+        artworks={allArtworkDates}
+        moods={moods}
+        styles={styles}
+        collectionSizes={collectionSizes}
+      />
 
       {/* Categories + Tags */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-px bg-border border border-border border-t-0">

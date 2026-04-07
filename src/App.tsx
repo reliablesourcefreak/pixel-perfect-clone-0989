@@ -25,6 +25,7 @@ const Auth = lazy(() => import("@/pages/Auth"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 const About = lazy(() => import("@/pages/About"));
 const SharedCollection = lazy(() => import("@/pages/SharedCollection"));
+const AskArchive = lazy(() => import("@/pages/AskArchive"));
 
 const queryClient = new QueryClient();
 
@@ -66,7 +67,8 @@ const App = () => (
                 <Route path="/favorites" element={<Favorites />} />
                 <Route path="/exports" element={<Exports />} />
                 <Route path="/settings" element={<Settings />} />
-                <Route path="/about" element={<About />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/ask" element={<ProtectedRoute><AskArchive /></ProtectedRoute>} />
               </Route>
               <Route path="/share/collection/:id" element={<SharedCollection />} />
               <Route path="*" element={<NotFound />} />
