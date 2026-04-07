@@ -13,6 +13,7 @@ import {
   LogOut,
   Star,
   Info,
+  Sparkles,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -41,6 +42,7 @@ const mainNav = [
 ];
 
 const viewsNav = [
+  { title: "Ask Archive", url: "/ask", icon: Sparkles },
   { title: "Timeline", url: "/timeline", icon: Clock },
   { title: "Mindmap", url: "/mindmap", icon: Network },
   { title: "About", url: "/about", icon: Info },
