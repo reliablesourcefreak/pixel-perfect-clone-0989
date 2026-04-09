@@ -3,14 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Plus, Pin, FolderOpen } from "lucide-react";
-import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
-} from "@/components/ui/dialog";
+import { Plus, Pin, FolderOpen, Zap } from "lucide-react";
 import { toast } from "sonner";
+import { SmartCollectionDialog, SmartRule } from "@/components/orbit/SmartCollectionDialog";
 
 const PALETTE = [
   "hsl(210, 80%, 55%)", "hsl(280, 65%, 55%)", "hsl(35, 85%, 55%)",
@@ -25,6 +20,8 @@ interface CollectionRow {
   color: string;
   cover_image_url: string | null;
   is_pinned: boolean;
+  is_smart: boolean;
+  smart_rules: SmartRule | null;
   created_at: string;
   updated_at: string;
   artwork_count: number;
@@ -37,8 +34,6 @@ export default function Collections() {
   const [collections, setCollections] = useState<CollectionRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
 
   const fetchCollections = async () => {
     setLoading(true);
@@ -60,6 +55,7 @@ export default function Collections() {
       const artLinks = (links || []).filter(l => l.collection_id === c.id);
       return {
         ...c,
+        smart_rules: c.smart_rules as SmartRule | null,
         artwork_count: artLinks.length,
         preview_images: artLinks.slice(0, 4).map(l => (l as any).artworks?.image_url).filter(Boolean),
       };
@@ -71,15 +67,16 @@ export default function Collections() {
 
   useEffect(() => { fetchCollections(); }, []);
 
-  const handleCreate = async () => {
-    if (!user || !name.trim()) return;
+  const handleCreate = async (data: { name: string; description: string; is_smart: boolean; smart_rules: SmartRule | null }) => {
+    if (!user) return;
     const color = PALETTE[Math.floor(Math.random() * PALETTE.length)];
     const { error } = await supabase.from("collections").insert({
-      user_id: user.id, name: name.trim(), description: description.trim(), color,
+      user_id: user.id, name: data.name, description: data.description, color,
+      is_smart: data.is_smart, smart_rules: data.smart_rules as any,
     });
     if (error) { toast.error("Error", { description: error.message }); return; }
-    setName(""); setDescription(""); setOpen(false);
-    toast("Collection created");
+    setOpen(false);
+    toast(data.is_smart ? "Smart collection created" : "Collection created");
     fetchCollections();
   };
 
@@ -99,30 +96,13 @@ export default function Collections() {
           </p>
         </div>
         {user && (
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Button variant="archive" size="sm">
-                <Plus className="h-3 w-3 mr-1.5" strokeWidth={1.5} />
-                New Board
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="rounded-none border-foreground">
-              <DialogHeader>
-                <DialogTitle className="font-serif text-xl">Create Collection</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-5 mt-4">
-                <div>
-                  <Label className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Name</Label>
-                  <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Character Concepts" className="mt-1.5 rounded-none" />
-                </div>
-                <div>
-                  <Label className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Purpose</Label>
-                  <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="What is this board for?" className="mt-1.5 rounded-none" />
-                </div>
-                <Button onClick={handleCreate} variant="archive" className="w-full">Create Board</Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+          <>
+            <Button variant="archive" size="sm" onClick={() => setOpen(true)}>
+              <Plus className="h-3 w-3 mr-1.5" strokeWidth={1.5} />
+              New Board
+            </Button>
+            <SmartCollectionDialog open={open} onOpenChange={setOpen} onSubmit={handleCreate} />
+          </>
         )}
       </div>
 
@@ -170,7 +150,10 @@ export default function Collections() {
                     <span className="catalog-num">BRD-{String(i + 1).padStart(3, "0")}</span>
                     <h3 className="font-serif text-lg mt-1 text-foreground">{col.name}</h3>
                   </div>
-                  {col.is_pinned && <Pin className="h-3 w-3 text-muted-foreground" strokeWidth={1.5} />}
+                  <div className="flex items-center gap-2">
+                    {col.is_smart && <Zap className="h-3 w-3 text-primary" strokeWidth={1.5} />}
+                    {col.is_pinned && <Pin className="h-3 w-3 text-muted-foreground" strokeWidth={1.5} />}
+                  </div>
                 </div>
                 {col.description && (
                   <p className="font-mono text-[10px] text-muted-foreground mt-2 tracking-wide line-clamp-2">{col.description}</p>

@@ -1,17 +1,50 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { LogOut, Trash2, Moon, Sun } from "lucide-react";
+import { LogOut, Trash2, Moon, Sun, Copy, Globe } from "lucide-react";
 
 export default function Settings() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [dark, setDark] = useState(() => document.documentElement.classList.contains("dark"));
+  const [displayName, setDisplayName] = useState("");
+  const [bio, setBio] = useState("");
+  const [portfolioEnabled, setPortfolioEnabled] = useState(false);
+  const [profileLoading, setProfileLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      const { data } = await supabase.from("profiles").select("display_name, bio, portfolio_enabled").eq("user_id", user.id).single();
+      if (data) {
+        setDisplayName(data.display_name || "");
+        setBio(data.bio || "");
+        setPortfolioEnabled((data as any).portfolio_enabled || false);
+      }
+      setProfileLoading(false);
+    })();
+  }, [user]);
+
+  const saveProfile = async () => {
+    if (!user) return;
+    const { error } = await supabase.from("profiles").upsert({
+      user_id: user.id,
+      display_name: displayName.trim() || null,
+      bio: bio.trim() || null,
+      portfolio_enabled: portfolioEnabled,
+    }, { onConflict: "user_id" });
+    if (error) { toast.error("Error saving profile"); return; }
+    toast("Profile saved");
+  };
+
+  const portfolioUrl = user ? `${window.location.origin}/portfolio/${user.id}` : "";
 
   const toggleTheme = (checked: boolean) => {
     setDark(checked);
@@ -77,7 +110,49 @@ export default function Settings() {
           </div>
         </div>
 
-        {/* Integrations */}
+        {/* Portfolio */}
+        {user && (
+          <div className="p-6">
+            <h3 className="font-serif text-lg text-foreground mb-4">Portfolio</h3>
+            <div className="space-y-4">
+              <div>
+                <Label className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Display Name</Label>
+                <Input value={displayName} onChange={e => setDisplayName(e.target.value)} placeholder="Your name" className="mt-1.5 rounded-none" />
+              </div>
+              <div>
+                <Label className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Bio</Label>
+                <Textarea value={bio} onChange={e => setBio(e.target.value)} placeholder="Tell the world about your work…" className="mt-1.5 rounded-none" rows={3} />
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Globe className="h-4 w-4 text-muted-foreground" strokeWidth={1.5} />
+                  <div>
+                    <p className="font-mono text-xs text-foreground">Public Portfolio</p>
+                    <p className="font-mono text-[10px] text-muted-foreground tracking-wide mt-0.5">Enable a public portfolio page for your public collections</p>
+                  </div>
+                </div>
+                <Switch checked={portfolioEnabled} onCheckedChange={setPortfolioEnabled} />
+              </div>
+              {portfolioEnabled && (
+                <div>
+                  <Label className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Portfolio URL</Label>
+                  <div className="mt-2 flex items-center gap-2">
+                    <code className="font-mono text-[10px] text-foreground bg-secondary px-2 py-1.5 border border-border flex-1 truncate">
+                      {portfolioUrl}
+                    </code>
+                    <Button variant="outline" size="sm" className="font-mono text-[10px] tracking-wide shrink-0" onClick={() => { navigator.clipboard.writeText(portfolioUrl); toast("Copied", { description: "Portfolio URL copied." }); }}>
+                      <Copy className="h-3 w-3 mr-1" /> Copy
+                    </Button>
+                  </div>
+                </div>
+              )}
+              <Button variant="archive" size="sm" className="font-mono text-xs" onClick={saveProfile} disabled={profileLoading}>
+                Save Profile
+              </Button>
+            </div>
+          </div>
+        )}
+
         <div className="p-6">
           <h3 className="font-serif text-lg text-foreground mb-4">Integrations</h3>
           <div>

@@ -4,8 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Pin, Trash2, Plus, X, Loader2, Search, Share2, Copy } from "lucide-react";
+import { Pin, Trash2, Plus, X, Loader2, Search, Share2, Copy, Zap, Globe } from "lucide-react";
 import { toast } from "sonner";
+import { Switch } from "@/components/ui/switch";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
@@ -16,6 +17,9 @@ interface CollectionData {
   description: string;
   color: string;
   is_pinned: boolean;
+  is_smart: boolean;
+  is_public: boolean;
+  smart_rules: any;
   user_id: string;
   created_at: string;
 }
@@ -52,6 +56,67 @@ export default function CollectionDetail() {
     setLoading(false);
   };
 
+  // Smart collection sync
+  const syncSmartCollection = async () => {
+    if (!id || !collection?.is_smart || !collection.smart_rules) return;
+    const rules = collection.smart_rules;
+    
+    // Fetch all artworks with their tags, moods, styles
+    const [{ data: allArts }, { data: allTags }, { data: allAnalysis }] = await Promise.all([
+      supabase.from("artworks").select("id, title, image_url, analysis_status, created_at"),
+      supabase.from("artwork_tags").select("artwork_id, tag"),
+      supabase.from("artwork_analysis").select("artwork_id, moods, styles"),
+    ]);
+
+    let matching = allArts || [];
+    const tagMap = new Map<string, string[]>();
+    (allTags || []).forEach(t => { if (!tagMap.has(t.artwork_id)) tagMap.set(t.artwork_id, []); tagMap.get(t.artwork_id)!.push(t.tag); });
+    const analysisMap = new Map((allAnalysis || []).map(a => [a.artwork_id, a]));
+
+    // Filter by tags
+    if (rules.tags?.length) {
+      matching = matching.filter(a => {
+        const artTags = tagMap.get(a.id) || [];
+        return rules.tags!.some((t: string) => artTags.includes(t));
+      });
+    }
+    // Filter by moods
+    if (rules.moods?.length) {
+      matching = matching.filter(a => {
+        const an = analysisMap.get(a.id);
+        return an?.moods?.some((m: string) => rules.moods!.includes(m));
+      });
+    }
+    // Filter by styles
+    if (rules.styles?.length) {
+      matching = matching.filter(a => {
+        const an = analysisMap.get(a.id);
+        return an?.styles?.some((s: string) => rules.styles!.includes(s));
+      });
+    }
+    // Filter by date
+    if (rules.dateRange && rules.dateRange !== "all") {
+      const days = parseInt(rules.dateRange);
+      const cutoff = new Date(Date.now() - days * 86400000).toISOString();
+      matching = matching.filter(a => a.created_at >= cutoff);
+    }
+    // Filter by analysis status
+    if (rules.analysisStatus) {
+      matching = matching.filter(a => a.analysis_status === rules.analysisStatus);
+    }
+
+    // Sync: remove old links, add new ones
+    await supabase.from("collection_artworks").delete().eq("collection_id", id);
+    if (matching.length > 0) {
+      await supabase.from("collection_artworks").insert(
+        matching.map(a => ({ collection_id: id, artwork_id: a.id }))
+      );
+    }
+    
+    setArtworks(matching.map(a => ({ id: a.id, title: a.title, image_url: a.image_url, analysis_status: a.analysis_status })));
+    toast(`Synced ${matching.length} artworks`);
+  };
+
   useEffect(() => { fetchData(); }, [id]);
 
   const isOwner = user?.id === collection?.user_id;
@@ -60,7 +125,14 @@ export default function CollectionDetail() {
     if (!collection) return;
     await supabase.from("collections").update({ is_pinned: !collection.is_pinned }).eq("id", collection.id);
     setCollection({ ...collection, is_pinned: !collection.is_pinned });
-    toast(collection.is_pinned ? "Unpinned" : "Pinned" );
+    toast(collection.is_pinned ? "Unpinned" : "Pinned");
+  };
+
+  const togglePublic = async () => {
+    if (!collection) return;
+    await supabase.from("collections").update({ is_public: !collection.is_public }).eq("id", collection.id);
+    setCollection({ ...collection, is_public: !collection.is_public });
+    toast(collection.is_public ? "Made private" : "Made public");
   };
 
   const handleDelete = async () => {
@@ -111,7 +183,9 @@ export default function CollectionDetail() {
       <div>
         <div className="flex items-center gap-3 mb-2">
           <span className="h-3 w-3" style={{ backgroundColor: collection.color }} />
-          <span className="catalog-num">Curated Board</span>
+          <span className="catalog-num">{collection.is_smart ? "Smart Collection" : "Curated Board"}</span>
+          {collection.is_smart && <Zap className="h-3.5 w-3.5 text-primary" strokeWidth={1.5} />}
+          {collection.is_public && <Globe className="h-3.5 w-3.5 text-primary" strokeWidth={1.5} />}
         </div>
         <h1 className="font-serif text-4xl text-foreground">{collection.name}</h1>
         {collection.description && (
@@ -120,7 +194,7 @@ export default function CollectionDetail() {
       </div>
 
       {/* Actions */}
-      <div className="flex gap-3 flex-wrap">
+      <div className="flex gap-3 flex-wrap items-center">
         <Button
           variant="outline"
           size="sm"
@@ -135,8 +209,18 @@ export default function CollectionDetail() {
         </Button>
         {isOwner && (
           <>
-            <Button variant="archive" size="sm" onClick={openAddDialog}>
-              <Plus className="h-3 w-3 mr-1.5" strokeWidth={1.5} /> Add Artworks
+            {collection.is_smart && (
+              <Button variant="archive" size="sm" onClick={syncSmartCollection}>
+                <Zap className="h-3 w-3 mr-1.5" strokeWidth={1.5} /> Sync Now
+              </Button>
+            )}
+            {!collection.is_smart && (
+              <Button variant="archive" size="sm" onClick={openAddDialog}>
+                <Plus className="h-3 w-3 mr-1.5" strokeWidth={1.5} /> Add Artworks
+              </Button>
+            )}
+            <Button variant="outline" size="sm" onClick={togglePublic} className="font-mono text-xs">
+              <Globe className="h-3 w-3 mr-1.5" strokeWidth={1.5} /> {collection.is_public ? "Make Private" : "Make Public"}
             </Button>
             <Button variant="outline" size="sm" onClick={togglePin} className="font-mono text-xs">
               <Pin className="h-3 w-3 mr-1.5" strokeWidth={1.5} /> {collection.is_pinned ? "Unpin" : "Pin"}
