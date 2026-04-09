@@ -6,11 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Plus, Pin, FolderOpen } from "lucide-react";
-import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
-} from "@/components/ui/dialog";
+import { Plus, Pin, FolderOpen, Zap } from "lucide-react";
 import { toast } from "sonner";
+import { SmartCollectionDialog, SmartRule } from "@/components/orbit/SmartCollectionDialog";
 
 const PALETTE = [
   "hsl(210, 80%, 55%)", "hsl(280, 65%, 55%)", "hsl(35, 85%, 55%)",
@@ -25,6 +23,8 @@ interface CollectionRow {
   color: string;
   cover_image_url: string | null;
   is_pinned: boolean;
+  is_smart: boolean;
+  smart_rules: SmartRule | null;
   created_at: string;
   updated_at: string;
   artwork_count: number;
