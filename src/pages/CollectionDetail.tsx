@@ -56,6 +56,67 @@ export default function CollectionDetail() {
     setLoading(false);
   };
 
+  // Smart collection sync
+  const syncSmartCollection = async () => {
+    if (!id || !collection?.is_smart || !collection.smart_rules) return;
+    const rules = collection.smart_rules;
+    
+    // Fetch all artworks with their tags, moods, styles
+    const [{ data: allArts }, { data: allTags }, { data: allAnalysis }] = await Promise.all([
+      supabase.from("artworks").select("id, title, image_url, analysis_status, created_at"),
+      supabase.from("artwork_tags").select("artwork_id, tag"),
+      supabase.from("artwork_analysis").select("artwork_id, moods, styles"),
+    ]);
+
+    let matching = allArts || [];
+    const tagMap = new Map<string, string[]>();
+    (allTags || []).forEach(t => { if (!tagMap.has(t.artwork_id)) tagMap.set(t.artwork_id, []); tagMap.get(t.artwork_id)!.push(t.tag); });
+    const analysisMap = new Map((allAnalysis || []).map(a => [a.artwork_id, a]));
+
+    // Filter by tags
+    if (rules.tags?.length) {
+      matching = matching.filter(a => {
+        const artTags = tagMap.get(a.id) || [];
+        return rules.tags!.some((t: string) => artTags.includes(t));
+      });
+    }
+    // Filter by moods
+    if (rules.moods?.length) {
+      matching = matching.filter(a => {
+        const an = analysisMap.get(a.id);
+        return an?.moods?.some((m: string) => rules.moods!.includes(m));
+      });
+    }
+    // Filter by styles
+    if (rules.styles?.length) {
+      matching = matching.filter(a => {
+        const an = analysisMap.get(a.id);
+        return an?.styles?.some((s: string) => rules.styles!.includes(s));
+      });
+    }
+    // Filter by date
+    if (rules.dateRange && rules.dateRange !== "all") {
+      const days = parseInt(rules.dateRange);
+      const cutoff = new Date(Date.now() - days * 86400000).toISOString();
+      matching = matching.filter(a => a.created_at >= cutoff);
+    }
+    // Filter by analysis status
+    if (rules.analysisStatus) {
+      matching = matching.filter(a => a.analysis_status === rules.analysisStatus);
+    }
+
+    // Sync: remove old links, add new ones
+    await supabase.from("collection_artworks").delete().eq("collection_id", id);
+    if (matching.length > 0) {
+      await supabase.from("collection_artworks").insert(
+        matching.map(a => ({ collection_id: id, artwork_id: a.id }))
+      );
+    }
+    
+    setArtworks(matching.map(a => ({ id: a.id, title: a.title, image_url: a.image_url, analysis_status: a.analysis_status })));
+    toast(`Synced ${matching.length} artworks`);
+  };
+
   useEffect(() => { fetchData(); }, [id]);
 
   const isOwner = user?.id === collection?.user_id;
@@ -64,7 +125,14 @@ export default function CollectionDetail() {
     if (!collection) return;
     await supabase.from("collections").update({ is_pinned: !collection.is_pinned }).eq("id", collection.id);
     setCollection({ ...collection, is_pinned: !collection.is_pinned });
-    toast(collection.is_pinned ? "Unpinned" : "Pinned" );
+    toast(collection.is_pinned ? "Unpinned" : "Pinned");
+  };
+
+  const togglePublic = async () => {
+    if (!collection) return;
+    await supabase.from("collections").update({ is_public: !collection.is_public }).eq("id", collection.id);
+    setCollection({ ...collection, is_public: !collection.is_public });
+    toast(collection.is_public ? "Made private" : "Made public");
   };
 
   const handleDelete = async () => {
