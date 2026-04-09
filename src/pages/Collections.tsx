@@ -37,8 +37,6 @@ export default function Collections() {
   const [collections, setCollections] = useState<CollectionRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
 
   const fetchCollections = async () => {
     setLoading(true);
@@ -60,6 +58,7 @@ export default function Collections() {
       const artLinks = (links || []).filter(l => l.collection_id === c.id);
       return {
         ...c,
+        smart_rules: c.smart_rules as SmartRule | null,
         artwork_count: artLinks.length,
         preview_images: artLinks.slice(0, 4).map(l => (l as any).artworks?.image_url).filter(Boolean),
       };
@@ -71,15 +70,16 @@ export default function Collections() {
 
   useEffect(() => { fetchCollections(); }, []);
 
-  const handleCreate = async () => {
-    if (!user || !name.trim()) return;
+  const handleCreate = async (data: { name: string; description: string; is_smart: boolean; smart_rules: SmartRule | null }) => {
+    if (!user) return;
     const color = PALETTE[Math.floor(Math.random() * PALETTE.length)];
     const { error } = await supabase.from("collections").insert({
-      user_id: user.id, name: name.trim(), description: description.trim(), color,
+      user_id: user.id, name: data.name, description: data.description, color,
+      is_smart: data.is_smart, smart_rules: data.smart_rules as any,
     });
     if (error) { toast.error("Error", { description: error.message }); return; }
-    setName(""); setDescription(""); setOpen(false);
-    toast("Collection created");
+    setOpen(false);
+    toast(data.is_smart ? "Smart collection created" : "Collection created");
     fetchCollections();
   };
 
@@ -99,30 +99,13 @@ export default function Collections() {
           </p>
         </div>
         {user && (
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Button variant="archive" size="sm">
-                <Plus className="h-3 w-3 mr-1.5" strokeWidth={1.5} />
-                New Board
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="rounded-none border-foreground">
-              <DialogHeader>
-                <DialogTitle className="font-serif text-xl">Create Collection</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-5 mt-4">
-                <div>
-                  <Label className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Name</Label>
-                  <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Character Concepts" className="mt-1.5 rounded-none" />
-                </div>
-                <div>
-                  <Label className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Purpose</Label>
-                  <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="What is this board for?" className="mt-1.5 rounded-none" />
-                </div>
-                <Button onClick={handleCreate} variant="archive" className="w-full">Create Board</Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+          <>
+            <Button variant="archive" size="sm" onClick={() => setOpen(true)}>
+              <Plus className="h-3 w-3 mr-1.5" strokeWidth={1.5} />
+              New Board
+            </Button>
+            <SmartCollectionDialog open={open} onOpenChange={setOpen} onSubmit={handleCreate} />
+          </>
         )}
       </div>
 
