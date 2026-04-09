@@ -1,17 +1,50 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { LogOut, Trash2, Moon, Sun } from "lucide-react";
+import { LogOut, Trash2, Moon, Sun, Copy, Globe } from "lucide-react";
 
 export default function Settings() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [dark, setDark] = useState(() => document.documentElement.classList.contains("dark"));
+  const [displayName, setDisplayName] = useState("");
+  const [bio, setBio] = useState("");
+  const [portfolioEnabled, setPortfolioEnabled] = useState(false);
+  const [profileLoading, setProfileLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      const { data } = await supabase.from("profiles").select("display_name, bio, portfolio_enabled").eq("user_id", user.id).single();
+      if (data) {
+        setDisplayName(data.display_name || "");
+        setBio(data.bio || "");
+        setPortfolioEnabled((data as any).portfolio_enabled || false);
+      }
+      setProfileLoading(false);
+    })();
+  }, [user]);
+
+  const saveProfile = async () => {
+    if (!user) return;
+    const { error } = await supabase.from("profiles").upsert({
+      user_id: user.id,
+      display_name: displayName.trim() || null,
+      bio: bio.trim() || null,
+      portfolio_enabled: portfolioEnabled,
+    }, { onConflict: "user_id" });
+    if (error) { toast.error("Error saving profile"); return; }
+    toast("Profile saved");
+  };
+
+  const portfolioUrl = user ? `${window.location.origin}/portfolio/${user.id}` : "";
 
   const toggleTheme = (checked: boolean) => {
     setDark(checked);
