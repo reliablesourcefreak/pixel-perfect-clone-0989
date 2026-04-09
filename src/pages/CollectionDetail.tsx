@@ -4,8 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Pin, Trash2, Plus, X, Loader2, Search, Share2, Copy } from "lucide-react";
+import { Pin, Trash2, Plus, X, Loader2, Search, Share2, Copy, Zap, Globe } from "lucide-react";
 import { toast } from "sonner";
+import { Switch } from "@/components/ui/switch";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
@@ -16,6 +17,9 @@ interface CollectionData {
   description: string;
   color: string;
   is_pinned: boolean;
+  is_smart: boolean;
+  is_public: boolean;
+  smart_rules: any;
   user_id: string;
   created_at: string;
 }
