@@ -265,7 +265,10 @@ export type Database = {
           description: string
           id: string
           is_pinned: boolean
+          is_public: boolean
+          is_smart: boolean
           name: string
+          smart_rules: Json | null
           updated_at: string
           user_id: string
         }
@@ -276,7 +279,10 @@ export type Database = {
           description?: string
           id?: string
           is_pinned?: boolean
+          is_public?: boolean
+          is_smart?: boolean
           name: string
+          smart_rules?: Json | null
           updated_at?: string
           user_id: string
         }
@@ -287,7 +293,40 @@ export type Database = {
           description?: string
           id?: string
           is_pinned?: boolean
+          is_public?: boolean
+          is_smart?: boolean
           name?: string
+          smart_rules?: Json | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          bio: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          portfolio_enabled: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bio?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          portfolio_enabled?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bio?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          portfolio_enabled?: boolean
           updated_at?: string
           user_id?: string
         }
