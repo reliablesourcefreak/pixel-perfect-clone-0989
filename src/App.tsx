@@ -26,6 +26,7 @@ const NotFound = lazy(() => import("@/pages/NotFound"));
 const About = lazy(() => import("@/pages/About"));
 const SharedCollection = lazy(() => import("@/pages/SharedCollection"));
 const AskArchive = lazy(() => import("@/pages/AskArchive"));
+const Portfolio = lazy(() => import("@/pages/Portfolio"));
 
 const queryClient = new QueryClient();
 
@@ -71,6 +72,7 @@ const App = () => (
               <Route path="/ask" element={<ProtectedRoute><AskArchive /></ProtectedRoute>} />
               </Route>
               <Route path="/share/collection/:id" element={<SharedCollection />} />
+              <Route path="/portfolio/:userId" element={<Portfolio />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>

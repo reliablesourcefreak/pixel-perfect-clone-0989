@@ -150,7 +150,10 @@ export default function Collections() {
                     <span className="catalog-num">BRD-{String(i + 1).padStart(3, "0")}</span>
                     <h3 className="font-serif text-lg mt-1 text-foreground">{col.name}</h3>
                   </div>
-                  {col.is_pinned && <Pin className="h-3 w-3 text-muted-foreground" strokeWidth={1.5} />}
+                  <div className="flex items-center gap-2">
+                    {col.is_smart && <Zap className="h-3 w-3 text-primary" strokeWidth={1.5} />}
+                    {col.is_pinned && <Pin className="h-3 w-3 text-muted-foreground" strokeWidth={1.5} />}
+                  </div>
                 </div>
                 {col.description && (
                   <p className="font-mono text-[10px] text-muted-foreground mt-2 tracking-wide line-clamp-2">{col.description}</p>
