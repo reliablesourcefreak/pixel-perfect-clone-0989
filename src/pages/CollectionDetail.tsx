@@ -183,7 +183,9 @@ export default function CollectionDetail() {
       <div>
         <div className="flex items-center gap-3 mb-2">
           <span className="h-3 w-3" style={{ backgroundColor: collection.color }} />
-          <span className="catalog-num">Curated Board</span>
+          <span className="catalog-num">{collection.is_smart ? "Smart Collection" : "Curated Board"}</span>
+          {collection.is_smart && <Zap className="h-3.5 w-3.5 text-primary" strokeWidth={1.5} />}
+          {collection.is_public && <Globe className="h-3.5 w-3.5 text-primary" strokeWidth={1.5} />}
         </div>
         <h1 className="font-serif text-4xl text-foreground">{collection.name}</h1>
         {collection.description && (
@@ -192,7 +194,7 @@ export default function CollectionDetail() {
       </div>
 
       {/* Actions */}
-      <div className="flex gap-3 flex-wrap">
+      <div className="flex gap-3 flex-wrap items-center">
         <Button
           variant="outline"
           size="sm"
@@ -207,8 +209,18 @@ export default function CollectionDetail() {
         </Button>
         {isOwner && (
           <>
-            <Button variant="archive" size="sm" onClick={openAddDialog}>
-              <Plus className="h-3 w-3 mr-1.5" strokeWidth={1.5} /> Add Artworks
+            {collection.is_smart && (
+              <Button variant="archive" size="sm" onClick={syncSmartCollection}>
+                <Zap className="h-3 w-3 mr-1.5" strokeWidth={1.5} /> Sync Now
+              </Button>
+            )}
+            {!collection.is_smart && (
+              <Button variant="archive" size="sm" onClick={openAddDialog}>
+                <Plus className="h-3 w-3 mr-1.5" strokeWidth={1.5} /> Add Artworks
+              </Button>
+            )}
+            <Button variant="outline" size="sm" onClick={togglePublic} className="font-mono text-xs">
+              <Globe className="h-3 w-3 mr-1.5" strokeWidth={1.5} /> {collection.is_public ? "Make Private" : "Make Public"}
             </Button>
             <Button variant="outline" size="sm" onClick={togglePin} className="font-mono text-xs">
               <Pin className="h-3 w-3 mr-1.5" strokeWidth={1.5} /> {collection.is_pinned ? "Unpin" : "Pin"}
