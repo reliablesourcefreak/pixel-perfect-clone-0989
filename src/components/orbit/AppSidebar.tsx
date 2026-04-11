@@ -67,11 +67,11 @@ export function AppSidebar() {
       <SidebarHeader className="px-5 py-6 border-b border-border">
         {!collapsed ? (
           <div>
-            <h1 className="font-serif text-xl tracking-tight text-sidebar-primary">Orbit</h1>
-            <p className="catalog-num mt-0.5">Creative OS</p>
+            <h1 className="font-serif text-xl tracking-tight text-sidebar-primary">Atelier</h1>
+            <p className="catalog-num mt-0.5">Creative Archive</p>
           </div>
         ) : (
-          <span className="font-serif text-lg text-sidebar-primary text-center block">O</span>
+          <span className="font-serif text-lg text-sidebar-primary text-center block">A</span>
         )}
       </SidebarHeader>
 

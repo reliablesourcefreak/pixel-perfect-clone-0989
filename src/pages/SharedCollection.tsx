@@ -101,7 +101,7 @@ export default function SharedCollection() {
 
       <div className="mt-12 pt-6 border-t border-border text-center">
         <span className="font-mono text-[10px] text-muted-foreground tracking-widest uppercase">
-          Orbit — Creative Archive
+          Atelier — Creative Archive
         </span>
       </div>
     </div>
