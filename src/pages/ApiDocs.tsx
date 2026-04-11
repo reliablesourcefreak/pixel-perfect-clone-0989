@@ -329,7 +329,7 @@ export default function ApiDocs() {
           ].map((err) => (
             <div key={err.code} className="py-3 flex items-start gap-4">
               <code className="font-mono text-xs text-accent font-medium">{err.code}</code>
-              <span className="font-mono text-xs text-muted-foreground tracking-wide">{err.description || err.desc}</span>
+              <span className="font-mono text-xs text-muted-foreground tracking-wide">{err.desc}</span>
             </div>
           ))}
         </div>
