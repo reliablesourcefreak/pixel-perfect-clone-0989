@@ -68,7 +68,7 @@ serve(async (req) => {
 
     const collectionList = (collections || []).map(c => `- "${c.name}": ${c.description || "no description"}`).join("\n");
 
-    const systemPrompt = `You are the Archive Intelligence — an AI assistant for a personal art archive called Orbit. You have deep knowledge of the user's entire collection.
+    const systemPrompt = `You are the Archive Intelligence — an AI assistant for a personal art archive called Atelier. You have deep knowledge of the user's entire collection.
 
 ARCHIVE DATA:
 

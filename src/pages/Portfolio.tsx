@@ -172,7 +172,7 @@ export default function Portfolio() {
       {/* Footer */}
       <footer className="border-t border-border py-8 text-center">
         <span className="font-mono text-[10px] text-muted-foreground tracking-widest uppercase">
-          Orbit — Creative Archive
+          Atelier — Creative Archive
         </span>
       </footer>
     </div>

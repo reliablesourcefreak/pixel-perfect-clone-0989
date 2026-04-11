@@ -45,7 +45,7 @@ export default function About() {
         </motion.h1>
         <motion.div variants={fade} className="mt-8 max-w-lg">
           <p className="font-mono text-xs text-muted-foreground tracking-wide leading-relaxed">
-            Orbit is an intelligent exhibition system built for artists who create at scale.
+            Atelier is an intelligent exhibition system built for artists who create at scale.
             It doesn't just store your work — it understands it. Through AI-driven analysis,
             automated categorization, and deep cross-referencing, your creative output becomes
             a navigable, interconnected body of knowledge.
@@ -172,7 +172,7 @@ export default function About() {
           <span className="italic text-accent">It's a body of knowledge.</span>
         </motion.h2>
         <motion.p variants={fade} className="font-mono text-xs text-muted-foreground mt-6 tracking-wide max-w-md mx-auto leading-relaxed">
-          Orbit transforms scattered creative output into a structured, searchable,
+          Atelier transforms scattered creative output into a structured, searchable,
           interconnected archive — with intelligence built into every layer.
         </motion.p>
         <motion.div variants={fade} className="mt-8">
@@ -186,7 +186,7 @@ export default function About() {
       {/* Footer strip */}
       <div className="mx-8 border-t border-border py-6 flex items-center justify-between">
         <span className="font-mono text-[10px] text-muted-foreground tracking-widest uppercase">
-          Orbit — Creative OS
+          Atelier — Creative Archive
         </span>
         <span className="font-mono text-[10px] text-muted-foreground tracking-widest">
           Built for artists. Powered by intelligence.

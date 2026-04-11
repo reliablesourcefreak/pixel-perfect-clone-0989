@@ -60,7 +60,7 @@ export interface StoryScene {
 // Store helpers
 function loadFromStorage<T>(key: string, defaultValue: T): T {
   try {
-    const stored = localStorage.getItem(`orbit_${key}`);
+    const stored = localStorage.getItem(`atelier_${key}`) || localStorage.getItem(`orbit_${key}`);
     return stored ? JSON.parse(stored) : defaultValue;
   } catch {
     return defaultValue;
@@ -68,7 +68,7 @@ function loadFromStorage<T>(key: string, defaultValue: T): T {
 }
 
 function saveToStorage<T>(key: string, value: T): void {
-  localStorage.setItem(`orbit_${key}`, JSON.stringify(value));
+  localStorage.setItem(`atelier_${key}`, JSON.stringify(value));
 }
 
 // Seed data
@@ -262,16 +262,16 @@ const SEED_STORIES: Story[] = [
 
 // Initialize with seed data if empty
 function initStore() {
-  if (!localStorage.getItem("orbit_collections")) {
+  if (!localStorage.getItem("atelier_collections") && !localStorage.getItem("orbit_collections")) {
     saveToStorage("collections", SEED_COLLECTIONS);
   }
-  if (!localStorage.getItem("orbit_artworks")) {
+  if (!localStorage.getItem("atelier_artworks") && !localStorage.getItem("orbit_artworks")) {
     saveToStorage("artworks", SEED_ARTWORKS);
   }
-  if (!localStorage.getItem("orbit_codex")) {
+  if (!localStorage.getItem("atelier_codex") && !localStorage.getItem("orbit_codex")) {
     saveToStorage("codex", SEED_CODEX);
   }
-  if (!localStorage.getItem("orbit_stories")) {
+  if (!localStorage.getItem("atelier_stories") && !localStorage.getItem("orbit_stories")) {
     saveToStorage("stories", SEED_STORIES);
   }
 }
