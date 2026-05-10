@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -65,6 +65,7 @@ export default function Gallery() {
   const [artworks, setArtworks] = useState<ArtworkWithTags[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [selectedMoods, setSelectedMoods] = useState<string[]>([]);
@@ -77,6 +78,19 @@ export default function Gallery() {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const navigate = useNavigate();
   const { user } = useAuth();
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      const typing = target?.tagName === "INPUT" || target?.tagName === "TEXTAREA" || target?.isContentEditable;
+      if (e.key === "/" && !typing && !e.metaKey && !e.ctrlKey) {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, []);
 
   const fetchArtworks = useCallback(async () => {
     setLoading(true);
@@ -271,9 +285,10 @@ export default function Gallery() {
             <span className="section-label">Search</span>
             <div className="mt-2 relative">
               <Input
+                ref={searchInputRef}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Title, tag, mood, style..."
+                placeholder="Title, tag, mood, style…  (press /)"
                 className="rounded-none pr-8"
               />
               <Search className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" strokeWidth={1.5} />
