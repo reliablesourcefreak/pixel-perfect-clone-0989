@@ -4,12 +4,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Pin, Trash2, Plus, X, Loader2, Search, Share2, Copy, Zap, Globe } from "lucide-react";
+import { Pin, Trash2, Plus, X, Loader2, Search, Share2, Copy, Zap, Globe, FileDown } from "lucide-react";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
+import jsPDF from "jspdf";
 
 interface CollectionData {
   id: string;
@@ -41,6 +42,7 @@ export default function CollectionDetail() {
   const [addOpen, setAddOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [allArtworks, setAllArtworks] = useState<ArtworkInCollection[]>([]);
+  const [exportingPdf, setExportingPdf] = useState(false);
 
   const fetchData = async () => {
     if (!id) return;
@@ -149,6 +151,114 @@ export default function CollectionDetail() {
     toast("Removed from collection");
   };
 
+  const exportPdf = async () => {
+    if (!collection || artworks.length === 0) {
+      toast("Nothing to export", { description: "Add artworks first." });
+      return;
+    }
+    setExportingPdf(true);
+    try {
+      const ids = artworks.map(a => a.id);
+      const [{ data: analyses }, { data: cats }, { data: tags }] = await Promise.all([
+        supabase.from("artwork_analysis").select("artwork_id, ai_description, moods, styles, composition").in("artwork_id", ids),
+        supabase.from("artwork_categories").select("artwork_id, category").in("artwork_id", ids),
+        supabase.from("artwork_tags").select("artwork_id, tag").in("artwork_id", ids),
+      ]);
+      const analysisMap = new Map((analyses || []).map(a => [a.artwork_id, a]));
+      const catsMap = new Map<string, string[]>();
+      (cats || []).forEach(c => { if (!catsMap.has(c.artwork_id)) catsMap.set(c.artwork_id, []); catsMap.get(c.artwork_id)!.push(c.category); });
+      const tagsMap = new Map<string, string[]>();
+      (tags || []).forEach(t => { if (!tagsMap.has(t.artwork_id)) tagsMap.set(t.artwork_id, []); tagsMap.get(t.artwork_id)!.push(t.tag); });
+
+      const loadImage = (url: string): Promise<{ data: string; w: number; h: number } | null> =>
+        new Promise((resolve) => {
+          const img = new Image();
+          img.crossOrigin = "anonymous";
+          img.onload = () => {
+            try {
+              const canvas = document.createElement("canvas");
+              const max = 800;
+              const scale = Math.min(1, max / Math.max(img.width, img.height));
+              canvas.width = img.width * scale;
+              canvas.height = img.height * scale;
+              const ctx = canvas.getContext("2d")!;
+              ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+              resolve({ data: canvas.toDataURL("image/jpeg", 0.85), w: canvas.width, h: canvas.height });
+            } catch { resolve(null); }
+          };
+          img.onerror = () => resolve(null);
+          img.src = url;
+        });
+
+      const pdf = new jsPDF({ unit: "pt", format: "a4" });
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
+      const margin = 48;
+
+      // Cover
+      pdf.setFont("helvetica", "normal");
+      pdf.setFontSize(10);
+      pdf.text("ATELIER — CREATIVE ARCHIVE", margin, margin);
+      pdf.setFontSize(28);
+      pdf.text(collection.name, margin, margin + 50);
+      if (collection.description) {
+        pdf.setFontSize(11);
+        const desc = pdf.splitTextToSize(collection.description, pageW - margin * 2);
+        pdf.text(desc, margin, margin + 80);
+      }
+      pdf.setFontSize(9);
+      pdf.text(`${artworks.length} works · ${new Date().toLocaleDateString()}`, margin, pageH - margin);
+
+      for (let i = 0; i < artworks.length; i++) {
+        const art = artworks[i];
+        pdf.addPage();
+        pdf.setFontSize(8);
+        pdf.text(`No. ${String(i + 1).padStart(3, "0")} / ${artworks.length}`, margin, margin);
+        pdf.setFontSize(18);
+        pdf.text(art.title, margin, margin + 24);
+
+        const img = await loadImage(art.image_url);
+        let yCursor = margin + 44;
+        if (img) {
+          const maxW = pageW - margin * 2;
+          const maxH = 320;
+          const ratio = Math.min(maxW / img.w, maxH / img.h);
+          const w = img.w * ratio, h = img.h * ratio;
+          pdf.addImage(img.data, "JPEG", margin, yCursor, w, h);
+          yCursor += h + 20;
+        }
+
+        const an = analysisMap.get(art.id);
+        const artCats = catsMap.get(art.id) || [];
+        const artTags = tagsMap.get(art.id) || [];
+        pdf.setFontSize(9);
+        const meta: string[] = [];
+        if (artCats.length) meta.push(`Categories: ${artCats.join(", ")}`);
+        if (an?.moods?.length) meta.push(`Moods: ${an.moods.join(", ")}`);
+        if (an?.styles?.length) meta.push(`Styles: ${an.styles.join(", ")}`);
+        if (artTags.length) meta.push(`Tags: ${artTags.slice(0, 12).join(", ")}`);
+        meta.forEach(line => {
+          const wrapped = pdf.splitTextToSize(line, pageW - margin * 2);
+          pdf.text(wrapped, margin, yCursor);
+          yCursor += wrapped.length * 12 + 4;
+        });
+        if (an?.ai_description) {
+          yCursor += 6;
+          pdf.setFontSize(10);
+          const desc = pdf.splitTextToSize(an.ai_description, pageW - margin * 2);
+          pdf.text(desc, margin, yCursor);
+        }
+      }
+
+      pdf.save(`${collection.name.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}-catalog.pdf`);
+      toast("PDF exported", { description: `${artworks.length} works rendered.` });
+    } catch (err: any) {
+      toast.error("Export failed", { description: err.message });
+    } finally {
+      setExportingPdf(false);
+    }
+  };
+
   const openAddDialog = async () => {
     const { data } = await supabase.from("artworks").select("id, title, image_url, analysis_status").order("created_at", { ascending: false });
     setAllArtworks(data || []);
@@ -206,6 +316,10 @@ export default function CollectionDetail() {
           }}
         >
           <Share2 className="h-3 w-3 mr-1.5" strokeWidth={1.5} /> Share
+        </Button>
+        <Button variant="outline" size="sm" className="font-mono text-xs" onClick={exportPdf} disabled={exportingPdf || artworks.length === 0}>
+          {exportingPdf ? <Loader2 className="h-3 w-3 mr-1.5 animate-spin" /> : <FileDown className="h-3 w-3 mr-1.5" strokeWidth={1.5} />}
+          {exportingPdf ? "Generating…" : "Export PDF"}
         </Button>
         {isOwner && (
           <>
