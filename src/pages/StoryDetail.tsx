@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Trash2, Plus, Loader2, Sparkles, Save, GripVertical } from "lucide-react";
 import { toast } from "sonner";
+import { archiveConfirm } from "@/components/orbit/ConfirmDialog";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -94,7 +95,14 @@ export default function StoryDetail() {
   };
 
   const handleDelete = async () => {
-    if (!story || !confirm("Delete this story and all its scenes?")) return;
+    if (!story) return;
+    const ok = await archiveConfirm({
+      title: "Delete this story?",
+      description: "The story and every scene within it will be removed.",
+      confirmLabel: "Delete",
+      destructive: true,
+    });
+    if (!ok) return;
     await supabase.from("stories").delete().eq("id", story.id);
     toast("Story deleted");
     navigate("/stories");

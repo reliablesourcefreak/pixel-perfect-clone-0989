@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, RefreshCw, Trash2, Star, Pencil, Save, X, Plus, FolderPlus } from "lucide-react";
 import { toast } from "sonner";
+import { archiveConfirm } from "@/components/orbit/ConfirmDialog";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
@@ -117,7 +118,14 @@ export default function ArtDetail() {
   };
 
   const handleDelete = async () => {
-    if (!artwork || !confirm("Delete this artwork permanently?")) return;
+    if (!artwork) return;
+    const ok = await archiveConfirm({
+      title: "Delete this artwork?",
+      description: "This will permanently remove the work and its analysis from the archive.",
+      confirmLabel: "Delete",
+      destructive: true,
+    });
+    if (!ok) return;
     await supabase.from("artworks").delete().eq("id", artwork.id);
     toast("Deleted");
     navigate("/gallery");

@@ -11,6 +11,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import jsPDF from "jspdf";
+import { archiveConfirm } from "@/components/orbit/ConfirmDialog";
 
 interface CollectionData {
   id: string;
@@ -138,7 +139,14 @@ export default function CollectionDetail() {
   };
 
   const handleDelete = async () => {
-    if (!collection || !confirm("Delete this collection? Artworks won't be deleted.")) return;
+    if (!collection) return;
+    const ok = await archiveConfirm({
+      title: "Delete this collection?",
+      description: "The collection record will be removed from the archive. Artworks themselves will not be deleted.",
+      confirmLabel: "Delete",
+      destructive: true,
+    });
+    if (!ok) return;
     await supabase.from("collections").delete().eq("id", collection.id);
     toast("Collection deleted");
     navigate("/collections");
