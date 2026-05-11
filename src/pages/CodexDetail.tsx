@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Trash2, Save, Plus, X, Search, Loader2, Sparkles, Wand2 } from "lucide-react";
 import RelationshipGraph from "@/components/orbit/RelationshipGraph";
 import { toast } from "sonner";
+import { archiveConfirm } from "@/components/orbit/ConfirmDialog";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
@@ -82,7 +83,14 @@ export default function CodexDetail() {
   };
 
   const handleDelete = async () => {
-    if (!entry || !confirm("Delete this codex entry?")) return;
+    if (!entry) return;
+    const ok = await archiveConfirm({
+      title: "Delete this entry?",
+      description: "The codex entry and its links to artworks will be removed.",
+      confirmLabel: "Delete",
+      destructive: true,
+    });
+    if (!ok) return;
     await supabase.from("codex_entries").delete().eq("id", entry.id);
     toast("Entry deleted");
     navigate("/codex");

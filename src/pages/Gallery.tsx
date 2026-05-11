@@ -65,6 +65,7 @@ export default function Gallery() {
   const [artworks, setArtworks] = useState<ArtworkWithTags[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
   const searchInputRef = useRef<HTMLInputElement>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
@@ -76,8 +77,14 @@ export default function Gallery() {
   const [collections, setCollections] = useState<{ id: string; name: string; color: string }[]>([]);
   const [selectMode, setSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedQuery(searchQuery), 180);
+    return () => clearTimeout(t);
+  }, [searchQuery]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -193,8 +200,8 @@ export default function Gallery() {
 
   const filtered = useMemo(() => {
     let result = artworks;
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
+    if (debouncedQuery) {
+      const q = debouncedQuery.toLowerCase();
       result = result.filter(a =>
         a.title.toLowerCase().includes(q) ||
         a.tags.some(t => t.tag.includes(q)) ||
@@ -226,7 +233,7 @@ export default function Gallery() {
       result = result.filter(a => a.analysis_status === statusFilter);
     }
     return result;
-  }, [artworks, searchQuery, selectedCategory, selectedTag, selectedMoods, selectedStyles, dateRange, statusFilter]);
+  }, [artworks, debouncedQuery, selectedCategory, selectedTag, selectedMoods, selectedStyles, dateRange, statusFilter]);
 
   const toggleMood = (mood: string) => {
     setSelectedMoods(prev => prev.includes(mood) ? prev.filter(m => m !== mood) : [...prev, mood]);
@@ -278,9 +285,26 @@ export default function Gallery() {
 
       <div className="border-t border-accent mb-8 border-2" />
 
+      {/* Mobile filter toggle */}
+      <button
+        onClick={() => setFiltersOpen(o => !o)}
+        className="lg:hidden mb-4 w-full flex items-center justify-between border border-border px-3 py-2 font-mono text-[10px] tracking-widest uppercase text-muted-foreground hover:text-foreground"
+      >
+        <span className="flex items-center gap-2">
+          <SlidersHorizontal className="h-3 w-3" strokeWidth={1.5} />
+          Filters & Search
+          {(activeFilterCount > 0 || selectedCategory || selectedTag) && (
+            <span className="bg-accent text-primary-foreground px-1.5 py-0.5 text-[9px]">
+              {activeFilterCount + (selectedCategory ? 1 : 0) + (selectedTag ? 1 : 0)}
+            </span>
+          )}
+        </span>
+        <span>{filtersOpen ? "−" : "+"}</span>
+      </button>
+
       <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-10">
         {/* Sidebar filters */}
-        <aside className="space-y-8">
+        <aside className={`space-y-8 ${filtersOpen ? "block" : "hidden"} lg:block`}>
           <div>
             <span className="section-label">Search</span>
             <div className="mt-2 relative">

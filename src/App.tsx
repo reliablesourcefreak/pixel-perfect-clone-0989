@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import Layout from "@/components/orbit/Layout";
+import { ConfirmDialog } from "@/components/orbit/ConfirmDialog";
 
 const Dashboard = lazy(() => import("@/pages/Dashboard"));
 const Gallery = lazy(() => import("@/pages/Gallery"));
@@ -49,6 +50,7 @@ const App = () => (
     <TooltipProvider>
       <AuthProvider>
         <Toaster />
+        <ConfirmDialog />
         <BrowserRouter>
           <Suspense fallback={<SuspenseFallback />}>
             <Routes>
