@@ -285,9 +285,26 @@ export default function Gallery() {
 
       <div className="border-t border-accent mb-8 border-2" />
 
+      {/* Mobile filter toggle */}
+      <button
+        onClick={() => setFiltersOpen(o => !o)}
+        className="lg:hidden mb-4 w-full flex items-center justify-between border border-border px-3 py-2 font-mono text-[10px] tracking-widest uppercase text-muted-foreground hover:text-foreground"
+      >
+        <span className="flex items-center gap-2">
+          <SlidersHorizontal className="h-3 w-3" strokeWidth={1.5} />
+          Filters & Search
+          {(activeFilterCount > 0 || selectedCategory || selectedTag) && (
+            <span className="bg-accent text-primary-foreground px-1.5 py-0.5 text-[9px]">
+              {activeFilterCount + (selectedCategory ? 1 : 0) + (selectedTag ? 1 : 0)}
+            </span>
+          )}
+        </span>
+        <span>{filtersOpen ? "−" : "+"}</span>
+      </button>
+
       <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-10">
         {/* Sidebar filters */}
-        <aside className="space-y-8">
+        <aside className={`space-y-8 ${filtersOpen ? "block" : "hidden"} lg:block`}>
           <div>
             <span className="section-label">Search</span>
             <div className="mt-2 relative">
