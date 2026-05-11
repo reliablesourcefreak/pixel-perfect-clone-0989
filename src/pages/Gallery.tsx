@@ -65,6 +65,7 @@ export default function Gallery() {
   const [artworks, setArtworks] = useState<ArtworkWithTags[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
   const searchInputRef = useRef<HTMLInputElement>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
@@ -76,8 +77,14 @@ export default function Gallery() {
   const [collections, setCollections] = useState<{ id: string; name: string; color: string }[]>([]);
   const [selectMode, setSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedQuery(searchQuery), 180);
+    return () => clearTimeout(t);
+  }, [searchQuery]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -193,8 +200,8 @@ export default function Gallery() {
 
   const filtered = useMemo(() => {
     let result = artworks;
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
+    if (debouncedQuery) {
+      const q = debouncedQuery.toLowerCase();
       result = result.filter(a =>
         a.title.toLowerCase().includes(q) ||
         a.tags.some(t => t.tag.includes(q)) ||
@@ -226,7 +233,7 @@ export default function Gallery() {
       result = result.filter(a => a.analysis_status === statusFilter);
     }
     return result;
-  }, [artworks, searchQuery, selectedCategory, selectedTag, selectedMoods, selectedStyles, dateRange, statusFilter]);
+  }, [artworks, debouncedQuery, selectedCategory, selectedTag, selectedMoods, selectedStyles, dateRange, statusFilter]);
 
   const toggleMood = (mood: string) => {
     setSelectedMoods(prev => prev.includes(mood) ? prev.filter(m => m !== mood) : [...prev, mood]);
