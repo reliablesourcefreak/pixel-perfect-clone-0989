@@ -2,3 +2,12 @@ project_id = "xgekguwametrtbsirjig"
 
 [functions.analyze-artwork]
 verify_jwt = false
+
+[functions.archive-export]
+verify_jwt = false
+
+[functions.archive-search]
+verify_jwt = false
+
+[functions.archive-stats]
+verify_jwt = false
