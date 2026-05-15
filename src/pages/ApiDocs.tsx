@@ -260,6 +260,101 @@ const ENDPOINTS: Endpoint[] = [
     exampleResponse: `<?xml version="1.0"?>\n<rss version="2.0">\n  <channel>...</channel>\n</rss>`,
     notes: ["Returns the 50 most recent artworks."],
   },
+  {
+    method: "GET",
+    path: "/archive-public/{resource}",
+    title: "Public REST API",
+    description:
+      "Authenticated read API for external integrations. Supports x-api-key header (issued via /api-keys) or Supabase JWT. Cursor pagination via ?cursor=<created_at>&limit=N (max 100). Resources: /me, /artworks, /artworks/:id, /collections, /codex, /stories.",
+    auth: "required",
+    queryParams: [
+      { field: "cursor", type: "string (ISO timestamp)", required: false, description: "Pass the previous response's next_cursor to fetch the next page." },
+      { field: "limit", type: "integer", required: false, description: "Page size, default 25, max 100." },
+    ],
+    responseFields: [
+      { field: "data", type: "object[]", description: "Page of resources." },
+      { field: "next_cursor", type: "string|null", description: "Pass back as ?cursor= to continue. Null when no more pages." },
+      { field: "limit", type: "integer", description: "Echo of the limit applied." },
+    ],
+    exampleResponse: JSON.stringify({ data: [{ id: "uuid", title: "Untitled", created_at: "2026-05-15T10:00:00Z" }], next_cursor: "2026-05-15T10:00:00Z", limit: 25 }, null, 2),
+    notes: ["Soft-deleted rows are filtered out automatically.", "Per-key rate limit: 120 req/min (best-effort token bucket)."],
+  },
+  {
+    method: "POST",
+    path: "/archive-bulk",
+    title: "Bulk Operations",
+    description: "Apply an operation to up to 500 artworks at once. Long-running ops (reanalyze) are enqueued as background jobs.",
+    auth: "required",
+    requestBody: [
+      { field: "op", type: "string", required: true, description: "tag_add | tag_remove | move_to_collection | favorite | unfavorite | soft_delete | restore | reanalyze" },
+      { field: "artwork_ids", type: "string[]", required: true, description: "Up to 500 artwork IDs the caller owns." },
+      { field: "params", type: "object", required: false, description: "Op-specific: { tags: [] } or { collection_id }" },
+    ],
+    exampleRequest: JSON.stringify({ op: "tag_add", artwork_ids: ["uuid1", "uuid2"], params: { tags: ["wip", "studio"] } }, null, 2),
+    exampleResponse: JSON.stringify({ affected: 2, op: "tag_add", tags: ["wip", "studio"] }, null, 2),
+    notes: ["Emits a webhook event `bulk.<op>` for each call.", "Writes an entry to the audit log."],
+    playground: { defaultBody: JSON.stringify({ op: "favorite", artwork_ids: ["<artwork-uuid>"] }, null, 2) },
+  },
+  {
+    method: "POST",
+    path: "/archive-jobs",
+    title: "Background Jobs",
+    description: "GET to list your jobs, POST to enqueue. Workers run every minute via pg_cron and process up to 5 pending jobs per tick. Kinds: reanalyze_artwork, purge_deleted.",
+    auth: "required",
+    requestBody: [
+      { field: "kind", type: "string", required: true, description: "reanalyze_artwork | purge_deleted" },
+      { field: "payload", type: "object", required: false, description: "Job-specific data." },
+    ],
+    exampleRequest: JSON.stringify({ kind: "reanalyze_artwork", payload: { artwork_id: "uuid" } }, null, 2),
+    exampleResponse: JSON.stringify({ id: "uuid", kind: "reanalyze_artwork", status: "pending", progress: 0 }, null, 2),
+  },
+  {
+    method: "POST",
+    path: "/api-keys",
+    title: "API Keys",
+    description: "Issue, list, and revoke long-lived API keys for the public REST API. The full key value is shown only once at creation time.",
+    auth: "required",
+    requestBody: [
+      { field: "name", type: "string", required: false, description: "Human label, max 100 chars." },
+      { field: "scopes", type: "string[]", required: false, description: "Default ['read']." },
+      { field: "expires_at", type: "string (ISO)", required: false, description: "Optional expiry." },
+    ],
+    exampleResponse: JSON.stringify({ id: "uuid", name: "Personal site", key: "atelier_AbCd...XyZ", key_prefix: "atelier_AbCd...", scopes: ["read"], warning: "Store this key — it cannot be retrieved again." }, null, 2),
+    notes: ["Hashed with SHA-256 before storage; only the prefix is recoverable.", "Revoke with DELETE /api-keys?id=<uuid>."],
+  },
+  {
+    method: "POST",
+    path: "/archive-webhooks",
+    title: "Webhooks",
+    description: "Subscribe to events. Deliveries are signed with HMAC-SHA-256 (header X-Atelier-Signature: sha256=<hex>). Retried up to 5 times with exponential backoff.",
+    auth: "required",
+    requestBody: [
+      { field: "url", type: "string (https)", required: true, description: "Receiver endpoint." },
+      { field: "events", type: "string[]", required: false, description: "Event filter, default ['*']. e.g. ['bulk.tag_add', 'job.reanalyze_artwork.done']" },
+      { field: "secret", type: "string", required: false, description: "Auto-generated if omitted." },
+    ],
+    exampleResponse: JSON.stringify({ id: "uuid", url: "https://example.com/hook", events: ["*"], secret: "whsec_...", secret_warning: "Store this secret to verify HMAC signatures." }, null, 2),
+    notes: ["Verify signatures: hmac_sha256(secret, raw_body) === header.split('=')[1]", "Pending deliveries are flushed every minute by pg_cron."],
+  },
+  {
+    method: "GET",
+    path: "/archive-pdf",
+    title: "Catalog PDF",
+    description: "Server-rendered printable HTML catalog of an archive or collection. Open in a browser and print-to-PDF (auto-triggered).",
+    auth: "required",
+    queryParams: [
+      { field: "collection_id", type: "string (UUID)", required: false, description: "Scope to a single collection. Omit for the full archive." },
+    ],
+    notes: ["Returns text/html with print CSS optimized for A4."],
+  },
+  {
+    method: "GET",
+    path: "/openapi-spec",
+    title: "OpenAPI Spec",
+    description: "Returns the OpenAPI 3.1 JSON spec for all endpoints. Import into Postman, Insomnia, or any OpenAPI-aware client.",
+    auth: "none",
+    exampleResponse: '{ "openapi": "3.1.0", "info": { "title": "Atelier Archive API" }, "paths": { ... } }',
+  },
 ];
 
 function CopyButton({ text, label = "Copy" }: { text: string; label?: string }) {
@@ -760,6 +855,22 @@ const SCHEMA: { name: string; purpose: string; cols: { name: string; type: strin
 
 const CHANGELOG = [
   {
+    version: "v2.0 — 2026-05-15",
+    items: [
+      "Added per-user API key system (/api-keys) with SHA-256 hashing and per-day usage metering.",
+      "Added public REST API (/archive-public/*) authenticated by x-api-key or JWT, with cursor pagination and best-effort token-bucket rate limiting (120 req/min/key).",
+      "Added bulk operations endpoint (/archive-bulk): tag, move, favorite, soft-delete, restore, reanalyze.",
+      "Added webhooks (/archive-webhooks) with HMAC-SHA-256 signing and exponential-backoff retries; dispatcher runs every minute via pg_cron.",
+      "Added background job runner (/archive-jobs) processing queued work every minute (pg_cron + pg_net).",
+      "Added soft-delete (deleted_at) on artworks/codex/stories/collections with /archive-jobs purge_deleted job.",
+      "Added revisions tables (artwork_revisions, codex_revisions, story_revisions) for version history.",
+      "Added audit_log table for activity feed.",
+      "Added pg_trgm + tsvector GIN indexes on titles, descriptions, codex content, story descriptions.",
+      "Added /archive-pdf for server-rendered printable catalogs.",
+      "Added /openapi (OpenAPI 3.1 spec) for Postman/Insomnia import.",
+    ],
+  },
+  {
     version: "v1.6 — 2026-05-12",
     items: [
       "Added /archive-export (JSON + CSV with collection/user scoping).",
@@ -778,6 +889,7 @@ const ERROR_CODES = [
   { code: "400", desc: "Invalid request body, missing required fields, or malformed query." },
   { code: "401", desc: "Missing or invalid authentication token (auth-required endpoints only)." },
   { code: "402", desc: "AI credit quota exhausted on Lovable AI Gateway." },
+  { code: "403", desc: "Authenticated but missing required scope (e.g. 'read' on the API key)." },
   { code: "404", desc: "Referenced resource (artwork, collection, codex entry) does not exist." },
   { code: "429", desc: "Rate limited — back off and retry with exponential delay." },
   { code: "500", desc: "Internal server error — see edge function logs for the trace." },
@@ -963,7 +1075,7 @@ export default function ApiDocs() {
 
       <div className="mt-12 pt-6 border-t border-border">
         <span className="font-mono text-[10px] text-muted-foreground tracking-widest uppercase">
-          Atelier — API Reference v1.6
+          Atelier — API Reference v2.0
         </span>
       </div>
     </div>
