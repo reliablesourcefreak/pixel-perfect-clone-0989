@@ -349,7 +349,7 @@ const ENDPOINTS: Endpoint[] = [
   },
   {
     method: "GET",
-    path: "/openapi",
+    path: "/openapi-spec",
     title: "OpenAPI Spec",
     description: "Returns the OpenAPI 3.1 JSON spec for all endpoints. Import into Postman, Insomnia, or any OpenAPI-aware client.",
     auth: "none",
