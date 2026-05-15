@@ -1075,7 +1075,7 @@ export default function ApiDocs() {
 
       <div className="mt-12 pt-6 border-t border-border">
         <span className="font-mono text-[10px] text-muted-foreground tracking-widest uppercase">
-          Atelier — API Reference v1.6
+          Atelier — API Reference v2.0
         </span>
       </div>
     </div>
