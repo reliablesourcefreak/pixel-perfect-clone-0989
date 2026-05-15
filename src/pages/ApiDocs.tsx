@@ -855,6 +855,22 @@ const SCHEMA: { name: string; purpose: string; cols: { name: string; type: strin
 
 const CHANGELOG = [
   {
+    version: "v2.0 — 2026-05-15",
+    items: [
+      "Added per-user API key system (/api-keys) with SHA-256 hashing and per-day usage metering.",
+      "Added public REST API (/archive-public/*) authenticated by x-api-key or JWT, with cursor pagination and best-effort token-bucket rate limiting (120 req/min/key).",
+      "Added bulk operations endpoint (/archive-bulk): tag, move, favorite, soft-delete, restore, reanalyze.",
+      "Added webhooks (/archive-webhooks) with HMAC-SHA-256 signing and exponential-backoff retries; dispatcher runs every minute via pg_cron.",
+      "Added background job runner (/archive-jobs) processing queued work every minute (pg_cron + pg_net).",
+      "Added soft-delete (deleted_at) on artworks/codex/stories/collections with /archive-jobs purge_deleted job.",
+      "Added revisions tables (artwork_revisions, codex_revisions, story_revisions) for version history.",
+      "Added audit_log table for activity feed.",
+      "Added pg_trgm + tsvector GIN indexes on titles, descriptions, codex content, story descriptions.",
+      "Added /archive-pdf for server-rendered printable catalogs.",
+      "Added /openapi (OpenAPI 3.1 spec) for Postman/Insomnia import.",
+    ],
+  },
+  {
     version: "v1.6 — 2026-05-12",
     items: [
       "Added /archive-export (JSON + CSV with collection/user scoping).",
@@ -873,6 +889,7 @@ const ERROR_CODES = [
   { code: "400", desc: "Invalid request body, missing required fields, or malformed query." },
   { code: "401", desc: "Missing or invalid authentication token (auth-required endpoints only)." },
   { code: "402", desc: "AI credit quota exhausted on Lovable AI Gateway." },
+  { code: "403", desc: "Authenticated but missing required scope (e.g. 'read' on the API key)." },
   { code: "404", desc: "Referenced resource (artwork, collection, codex entry) does not exist." },
   { code: "429", desc: "Rate limited — back off and retry with exponential delay." },
   { code: "500", desc: "Internal server error — see edge function logs for the trace." },
