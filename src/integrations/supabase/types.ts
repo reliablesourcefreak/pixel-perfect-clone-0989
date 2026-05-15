@@ -14,6 +14,74 @@ export type Database = {
   }
   public: {
     Tables: {
+      api_key_usage: {
+        Row: {
+          api_key_id: string
+          day: string
+          id: string
+          request_count: number
+        }
+        Insert: {
+          api_key_id: string
+          day?: string
+          id?: string
+          request_count?: number
+        }
+        Update: {
+          api_key_id?: string
+          day?: string
+          id?: string
+          request_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "api_key_usage_api_key_id_fkey"
+            columns: ["api_key_id"]
+            isOneToOne: false
+            referencedRelation: "api_keys"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      api_keys: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          key_hash: string
+          key_prefix: string
+          last_used_at: string | null
+          name: string
+          scopes: string[]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          key_hash: string
+          key_prefix: string
+          last_used_at?: string | null
+          name: string
+          scopes?: string[]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          key_hash?: string
+          key_prefix?: string
+          last_used_at?: string | null
+          name?: string
+          scopes?: string[]
+          user_id?: string
+        }
+        Relationships: []
+      }
       artwork_analysis: {
         Row: {
           ai_description: string | null
@@ -87,6 +155,30 @@ export type Database = {
           },
         ]
       }
+      artwork_revisions: {
+        Row: {
+          artwork_id: string
+          created_at: string
+          id: string
+          snapshot: Json
+          user_id: string
+        }
+        Insert: {
+          artwork_id: string
+          created_at?: string
+          id?: string
+          snapshot: Json
+          user_id: string
+        }
+        Update: {
+          artwork_id?: string
+          created_at?: string
+          id?: string
+          snapshot?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
       artwork_tags: {
         Row: {
           artwork_id: string
@@ -117,6 +209,7 @@ export type Database = {
         Row: {
           analysis_status: string
           created_at: string
+          deleted_at: string | null
           file_size_bytes: number | null
           height: number | null
           id: string
@@ -130,6 +223,7 @@ export type Database = {
         Insert: {
           analysis_status?: string
           created_at?: string
+          deleted_at?: string | null
           file_size_bytes?: number | null
           height?: number | null
           id?: string
@@ -143,6 +237,7 @@ export type Database = {
         Update: {
           analysis_status?: string
           created_at?: string
+          deleted_at?: string | null
           file_size_bytes?: number | null
           height?: number | null
           id?: string
@@ -152,6 +247,81 @@ export type Database = {
           updated_at?: string
           user_id?: string
           width?: number | null
+        }
+        Relationships: []
+      }
+      audit_log: {
+        Row: {
+          action: string
+          created_at: string
+          entity_id: string | null
+          entity_type: string
+          id: string
+          metadata: Json | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          entity_id?: string | null
+          entity_type: string
+          id?: string
+          metadata?: Json | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+          metadata?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      background_jobs: {
+        Row: {
+          created_at: string
+          error: string | null
+          finished_at: string | null
+          id: string
+          kind: string
+          payload: Json
+          progress: number
+          result: Json | null
+          scheduled_at: string
+          started_at: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          error?: string | null
+          finished_at?: string | null
+          id?: string
+          kind: string
+          payload?: Json
+          progress?: number
+          result?: Json | null
+          scheduled_at?: string
+          started_at?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          error?: string | null
+          finished_at?: string | null
+          id?: string
+          kind?: string
+          payload?: Json
+          progress?: number
+          result?: Json | null
+          scheduled_at?: string
+          started_at?: string | null
+          status?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -193,6 +363,7 @@ export type Database = {
           ai_summary: string | null
           content: string
           created_at: string
+          deleted_at: string | null
           id: string
           title: string
           type: string
@@ -203,6 +374,7 @@ export type Database = {
           ai_summary?: string | null
           content?: string
           created_at?: string
+          deleted_at?: string | null
           id?: string
           title: string
           type?: string
@@ -213,10 +385,35 @@ export type Database = {
           ai_summary?: string | null
           content?: string
           created_at?: string
+          deleted_at?: string | null
           id?: string
           title?: string
           type?: string
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      codex_revisions: {
+        Row: {
+          codex_entry_id: string
+          created_at: string
+          id: string
+          snapshot: Json
+          user_id: string
+        }
+        Insert: {
+          codex_entry_id: string
+          created_at?: string
+          id?: string
+          snapshot: Json
+          user_id: string
+        }
+        Update: {
+          codex_entry_id?: string
+          created_at?: string
+          id?: string
+          snapshot?: Json
           user_id?: string
         }
         Relationships: []
@@ -262,6 +459,7 @@ export type Database = {
           color: string
           cover_image_url: string | null
           created_at: string
+          deleted_at: string | null
           description: string
           id: string
           is_pinned: boolean
@@ -276,6 +474,7 @@ export type Database = {
           color?: string
           cover_image_url?: string | null
           created_at?: string
+          deleted_at?: string | null
           description?: string
           id?: string
           is_pinned?: boolean
@@ -290,6 +489,7 @@ export type Database = {
           color?: string
           cover_image_url?: string | null
           created_at?: string
+          deleted_at?: string | null
           description?: string
           id?: string
           is_pinned?: boolean
@@ -336,6 +536,7 @@ export type Database = {
         Row: {
           ai_summary: string | null
           created_at: string
+          deleted_at: string | null
           description: string
           id: string
           status: string
@@ -346,6 +547,7 @@ export type Database = {
         Insert: {
           ai_summary?: string | null
           created_at?: string
+          deleted_at?: string | null
           description?: string
           id?: string
           status?: string
@@ -356,11 +558,36 @@ export type Database = {
         Update: {
           ai_summary?: string | null
           created_at?: string
+          deleted_at?: string | null
           description?: string
           id?: string
           status?: string
           title?: string
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      story_revisions: {
+        Row: {
+          created_at: string
+          id: string
+          snapshot: Json
+          story_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          snapshot: Json
+          story_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          snapshot?: Json
+          story_id?: string
           user_id?: string
         }
         Relationships: []
@@ -420,12 +647,93 @@ export type Database = {
           },
         ]
       }
+      webhook_deliveries: {
+        Row: {
+          attempt_count: number
+          created_at: string
+          delivered_at: string | null
+          event_type: string
+          id: string
+          next_retry_at: string | null
+          payload: Json
+          response_body: string | null
+          response_status: number | null
+          webhook_id: string
+        }
+        Insert: {
+          attempt_count?: number
+          created_at?: string
+          delivered_at?: string | null
+          event_type: string
+          id?: string
+          next_retry_at?: string | null
+          payload: Json
+          response_body?: string | null
+          response_status?: number | null
+          webhook_id: string
+        }
+        Update: {
+          attempt_count?: number
+          created_at?: string
+          delivered_at?: string | null
+          event_type?: string
+          id?: string
+          next_retry_at?: string | null
+          payload?: Json
+          response_body?: string | null
+          response_status?: number | null
+          webhook_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhook_deliveries_webhook_id_fkey"
+            columns: ["webhook_id"]
+            isOneToOne: false
+            referencedRelation: "webhooks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      webhooks: {
+        Row: {
+          created_at: string
+          events: string[]
+          id: string
+          is_active: boolean
+          secret: string
+          updated_at: string
+          url: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          events?: string[]
+          id?: string
+          is_active?: boolean
+          secret: string
+          updated_at?: string
+          url: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          events?: string[]
+          id?: string
+          is_active?: boolean
+          secret?: string
+          updated_at?: string
+          url?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      show_limit: { Args: never; Returns: number }
+      show_trgm: { Args: { "": string }; Returns: string[] }
     }
     Enums: {
       [_ in never]: never
