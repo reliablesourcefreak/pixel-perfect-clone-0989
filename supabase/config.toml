@@ -30,5 +30,5 @@ verify_jwt = false
 [functions.archive-pdf]
 verify_jwt = false
 
-[functions.openapi]
+[functions.openapi-spec]
 verify_jwt = false
