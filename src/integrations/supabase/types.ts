@@ -732,6 +732,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      increment_api_key_usage: {
+        Args: { _day: string; _key_id: string }
+        Returns: undefined
+      }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
     }
