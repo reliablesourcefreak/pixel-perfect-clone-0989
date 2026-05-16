@@ -104,6 +104,7 @@ export default function Gallery() {
     const { data: arts } = await supabase
       .from("artworks")
       .select("id, title, image_url, analysis_status, created_at")
+      .is("deleted_at", null)
       .order("created_at", { ascending: false });
 
     if (!arts) { setLoading(false); return; }

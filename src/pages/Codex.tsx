@@ -60,6 +60,7 @@ export default function Codex() {
     const { data: rows } = await supabase
       .from("codex_entries")
       .select("*")
+      .is("deleted_at", null)
       .order("updated_at", { ascending: false });
 
     if (!rows) { setLoading(false); return; }

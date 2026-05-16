@@ -126,8 +126,8 @@ export default function ArtDetail() {
       destructive: true,
     });
     if (!ok) return;
-    await supabase.from("artworks").delete().eq("id", artwork.id);
-    toast("Deleted");
+    await supabase.from("artworks").update({ deleted_at: new Date().toISOString() }).eq("id", artwork.id);
+    toast("Moved to Trash", { description: "Restore from Backend → Trash" });
     navigate("/gallery");
   };
 
