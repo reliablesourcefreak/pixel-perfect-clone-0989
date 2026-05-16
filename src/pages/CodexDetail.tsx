@@ -91,8 +91,8 @@ export default function CodexDetail() {
       destructive: true,
     });
     if (!ok) return;
-    await supabase.from("codex_entries").delete().eq("id", entry.id);
-    toast("Entry deleted");
+    await supabase.from("codex_entries").update({ deleted_at: new Date().toISOString() }).eq("id", entry.id);
+    toast("Moved to Trash", { description: "Restore from Backend → Trash" });
     navigate("/codex");
   };
 
