@@ -26,7 +26,7 @@ serve(async (req) => {
   const valid = ids.filter((i) => ownedIds.has(i));
   if (!valid.length) return json({ error: "no matching owned artworks" }, 404);
 
-  let result: Record<string, unknown> = { affected: valid.length, op };
+  const result: Record<string, unknown> = { affected: valid.length, op };
 
   switch (op) {
     case "tag_add": {
