@@ -103,8 +103,8 @@ export default function StoryDetail() {
       destructive: true,
     });
     if (!ok) return;
-    await supabase.from("stories").delete().eq("id", story.id);
-    toast("Story deleted");
+    await supabase.from("stories").update({ deleted_at: new Date().toISOString() }).eq("id", story.id);
+    toast("Moved to Trash", { description: "Restore from Backend → Trash" });
     navigate("/stories");
   };
 
