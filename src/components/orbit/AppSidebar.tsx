@@ -15,6 +15,7 @@ import {
   Info,
   Sparkles,
   FileCode2,
+  Server,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -47,6 +48,7 @@ const viewsNav = [
   { title: "Timeline", url: "/timeline", icon: Clock },
   { title: "Mindmap", url: "/mindmap", icon: Network },
   { title: "API Docs", url: "/api-docs", icon: FileCode2 },
+  { title: "Backend", url: "/backend", icon: Server },
   { title: "About", url: "/about", icon: Info },
   { title: "Exports", url: "/exports", icon: Download },
   { title: "Settings", url: "/settings", icon: Settings },
