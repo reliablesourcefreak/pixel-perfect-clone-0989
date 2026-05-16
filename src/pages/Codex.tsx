@@ -192,7 +192,7 @@ export default function Codex() {
                         </p>
                       ) : (
                         <p className="mt-2 font-mono text-xs text-muted-foreground line-clamp-2 leading-relaxed max-w-xl">
-                          {entry.content.replace(/[#*\[\]]/g, "").slice(0, 180)}
+                          {entry.content.replace(/[#*[\]]/g, "").slice(0, 180)}
                         </p>
                       )}
                     </div>
