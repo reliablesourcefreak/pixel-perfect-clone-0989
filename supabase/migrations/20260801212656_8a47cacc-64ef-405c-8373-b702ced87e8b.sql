@@ -1,0 +1,2 @@
+create index if not exists idx_background_jobs_pending on public.background_jobs (scheduled_at) where status = 'pending';
+create index if not exists idx_webhook_deliveries_pending on public.webhook_deliveries (next_retry_at) where delivered_at is null;
